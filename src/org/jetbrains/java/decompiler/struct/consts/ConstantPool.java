@@ -213,7 +213,10 @@ public class ConstantPool implements NewClassNameBuilder {
     if (newName != null) {
       StringBuilder buffer = new StringBuilder();
       if (vt.arrayDim > 0) {
-        buffer.append("[".repeat(vt.arrayDim)).append('L').append(newName).append(';');
+        for (int i = 0; i < vt.arrayDim; ++i) {
+          buffer.append('[');
+        }
+        buffer.append('L').append(newName).append(';');
       }
       else {
         buffer.append(newName);
