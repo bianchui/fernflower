@@ -26,6 +26,20 @@ public class ConverterHelper implements IIdentifierRenamer {
   private final Set<String> setNonStandardClassNames = new HashSet<>();
 
   @Override
+  public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
+    String newSubName = oldSubName;
+    // DO renames
+    if (!oldSubName.equals(newSubName) || !newParentPackage.equals(oldParentPackage)) {
+      if (oldParentPackage.length() == 0) {
+        System.out.printf("Rename package: %s -> %s\n", oldSubName, newSubName);
+      } else {
+        System.out.printf("Rename package: %s/%s -> %s/%s\n", oldParentPackage, oldSubName, newParentPackage, newSubName);
+      }
+    }
+    return newSubName;
+  }
+
+  @Override
   public boolean toBeRenamed(Type elementType, String className, String element, String descriptor) {
     String value = elementType == Type.ELEMENT_CLASS ? className : element;
     return value == null ||

@@ -3,6 +3,8 @@ package org.jetbrains.java.decompiler.main.extern;
 
 public interface IIdentifierRenamer {
 
+  String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName);
+
   enum Type {ELEMENT_CLASS, ELEMENT_FIELD, ELEMENT_METHOD}
 
   boolean toBeRenamed(Type elementType, String className, String element, String descriptor);

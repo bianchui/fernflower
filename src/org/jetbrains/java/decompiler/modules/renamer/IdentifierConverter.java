@@ -23,6 +23,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
   private List<ClassWrapperNode> rootInterfaces = new ArrayList<>();
   private Map<String, Map<String, String>> interfaceNameMaps = new HashMap<>();
 
+  private Map<String, String> _renamePackages = new HashMap<>();
+  private Set<String> _notRenamePackages = new HashSet<>();
+
   public IdentifierConverter(StructContext context, IIdentifierRenamer helper, PoolInterceptor interceptor) {
     this.context = context;
     this.helper = helper;
@@ -145,19 +148,68 @@ public class IdentifierConverter implements NewClassNameBuilder {
     }
 
     String classOldFullName = cl.qualifiedName;
+    String classFullName = classOldFullName;
+    boolean packageChange = false;
 
     // TODO: rename packages
-    String clSimpleName = ConverterHelper.getSimpleClassName(classOldFullName);
+    {
+      String lastOldPackageName = "";
+      String lastNewPackageName = lastOldPackageName;
+      for (int i = 0; i < classOldFullName.length(); ) {
+        int nextPackage = classOldFullName.indexOf('/', i);
+        if (nextPackage == -1) {
+          if (packageChange) {
+            classFullName = lastNewPackageName + '/' + classOldFullName.substring(i);
+          }
+          break;
+        }
+        final String packageName = classOldFullName.substring(0, nextPackage);
+        if (packageChange || !_notRenamePackages.contains(packageName)) {
+          if (_renamePackages.containsKey(packageName)) {
+            lastNewPackageName = _renamePackages.get(packageName);
+            packageChange = true;
+          } else {
+            final String subPackageName = lastOldPackageName.length() == 0 ? packageName : packageName.substring(lastOldPackageName.length() + 1);
+            final String newSubName = helper.renamePackage(lastOldPackageName, lastNewPackageName, subPackageName);
+            if (packageChange || !newSubName.equals(subPackageName)) {
+              if (lastOldPackageName.length() == 0) {
+                lastNewPackageName = newSubName;
+              } else {
+                lastNewPackageName += '/' + newSubName;
+              }
+              packageChange = true;
+              _renamePackages.put(packageName, lastNewPackageName);
+            } else {
+              lastNewPackageName = packageName;
+              _notRenamePackages.add(packageName);
+            }
+          }
+        } else {
+          lastNewPackageName = packageName;
+        }
+        lastOldPackageName = packageName;
+        i = nextPackage + 1;
+      }
+    }
+
+
+    String clSimpleName = ConverterHelper.getSimpleClassName(classFullName);
     if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_CLASS, clSimpleName, null, null)) {
       String classNewFullName;
 
       do {
-        String classname = helper.getNextClassName(classOldFullName, ConverterHelper.getSimpleClassName(classOldFullName));
-        classNewFullName = ConverterHelper.replaceSimpleClassName(classOldFullName, classname);
+        String classname = helper.getNextClassName(classFullName, ConverterHelper.getSimpleClassName(classFullName));
+        classNewFullName = ConverterHelper.replaceSimpleClassName(classFullName, classname);
       }
       while (context.getClasses().containsKey(classNewFullName));
 
       interceptor.addName(classOldFullName, classNewFullName);
+      System.out.printf("Rename class: %s -> %s\n", classOldFullName, classNewFullName);
+    } else {
+      if (packageChange) {
+        interceptor.addName(classOldFullName, classFullName);
+        System.out.printf("Rename class: %s -> %s\n", classOldFullName, classFullName);
+      }
     }
   }
 
