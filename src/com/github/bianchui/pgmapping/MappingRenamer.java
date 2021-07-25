@@ -7,16 +7,16 @@ import java.io.File;
 
 public class MappingRenamer implements IIdentifierRenamer {
   private final ConverterHelper _helper;
-  private final MappingReader _reader;
+  private final MappingReader _mappingReader;
 
   public MappingRenamer() {
     _helper = new ConverterHelper();
     File file = new File("mapping.txt");
     if (file.canRead()) {
-      _reader = new MappingReader(file);
-      _reader.dump();
+      _mappingReader = new MappingReader(file);
+      _mappingReader.dump();
     } else {
-      _reader = null;
+      _mappingReader = null;
     }
   }
 
@@ -35,6 +35,22 @@ public class MappingRenamer implements IIdentifierRenamer {
 
   @Override
   public boolean toBeRenamed(Type elementType, String className, String element, String descriptor) {
+    System.out.printf("toBeRenamed(%s) %s: %s, %s\n", elementType.name(), className, element, descriptor);
+    if (_mappingReader != null) {
+      switch (elementType) {
+        case ELEMENT_CLASS: {
+          if (_mappingReader.getClassOrgName(element) != null) {
+            return true;
+          }
+          break;
+        }
+        case ELEMENT_FIELD:
+          if (_mappingReader.getFieldOrgName(className, element, descriptor) != null) {
+            return true;
+          }
+          break;
+      }
+    }
     return _helper.toBeRenamed(elementType, className, element, descriptor);
   }
 

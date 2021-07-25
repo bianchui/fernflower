@@ -78,6 +78,7 @@ public class MappingReader {
         if (line.length() == 0 || line.startsWith("#")) {
           continue;
         }
+        line = line.replace('.', '/');
         if (line.startsWith(" ")) {
           // continue class
           if (cls == null) {
@@ -239,18 +240,36 @@ public class MappingReader {
 
   public void dump() {
     for (ClassInfo classInfo : _classes) {
-      System.out.printf("class %s {\n", classInfo._orgName);
+      System.out.printf("// %s\n", classInfo._orgName);
+      System.out.printf("class %s {\n", classInfo._mapName);
       if (classInfo._fields != null) {
         for (FieldInfo info : classInfo._fields) {
-          System.out.printf("  %s // -> %s\n", info.orgField(), info.mapField());
+          System.out.printf("  // %s\n", info.orgField());
+          System.out.printf("  %s\n", info.mapField());
         }
       }
       if (classInfo._methods != null) {
         for (MethodInfo info : classInfo._methods) {
-          System.out.printf("  %s // -> %s\n", info.orgFunction(), info.mapFunction());
+          System.out.printf("  // %s\n", info.orgFunction());
+          System.out.printf("  %s\n", info.mapFunction());
         }
       }
       System.out.printf("}\n");
     }
+  }
+
+  public String getClassOrgName(String className) {
+    //className = className.replace('/', '.');
+    ClassInfo classInfo = _mapNameClasses.get(className);
+    return classInfo != null && !classInfo._orgName.equals(className) ? classInfo._orgName : null;
+  }
+
+  public String getFieldOrgName(String className, String element, String descriptor) {
+    ClassInfo classInfo = _mapNameClasses.get(className);
+    if (classInfo != null) {
+      FieldInfo fieldInfo = classInfo._mapFields.get(element + " " + descriptor);
+      return fieldInfo == null ? fieldInfo._orgName : null;
+    }
+    return null;
   }
 }

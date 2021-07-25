@@ -194,7 +194,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
 
     String clSimpleName = ConverterHelper.getSimpleClassName(classFullName);
-    if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_CLASS, clSimpleName, null, null)) {
+    if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_CLASS, clSimpleName, classOldFullName, null)) {
       String classNewFullName;
 
       do {
