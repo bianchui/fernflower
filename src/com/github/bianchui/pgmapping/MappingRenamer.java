@@ -3,11 +3,21 @@ package com.github.bianchui.pgmapping;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
 
+import java.io.File;
+
 public class MappingRenamer implements IIdentifierRenamer {
   private final ConverterHelper _helper;
+  private final MappingReader _reader;
 
   public MappingRenamer() {
     _helper = new ConverterHelper();
+    File file = new File("mapping.txt");
+    if (file.canRead()) {
+      _reader = new MappingReader(file);
+      _reader.dump();
+    } else {
+      _reader = null;
+    }
   }
 
   @Override
