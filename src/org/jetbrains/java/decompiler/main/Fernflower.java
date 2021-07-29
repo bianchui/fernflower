@@ -98,6 +98,9 @@ public class Fernflower implements IDecompiledData {
       return null;
     }
     else if (converter != null) {
+      if (true) {
+        return cl.qualifiedName + ".java";
+      }
       String simpleClassName = cl.qualifiedName.substring(cl.qualifiedName.lastIndexOf('/') + 1);
       return entryName.substring(0, entryName.lastIndexOf('/') + 1) + simpleClassName + ".java";
     }
