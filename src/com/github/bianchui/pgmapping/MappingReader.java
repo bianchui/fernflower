@@ -78,6 +78,7 @@ public class MappingReader {
         if (line.length() == 0 || line.startsWith("#")) {
           continue;
         }
+        // replace com.github.bianchui -> com/github/bianchui
         line = line.replace('.', '/');
         if (line.startsWith(" ")) {
           // continue class
@@ -259,9 +260,13 @@ public class MappingReader {
   }
 
   public String getClassOrgName(String className) {
-    //className = className.replace('/', '.');
     ClassInfo classInfo = _mapNameClasses.get(className);
-    return classInfo != null && !classInfo._orgName.equals(className) ? classInfo._orgName : null;
+    return classInfo != null ? classInfo._orgName : null;
+  }
+
+  public String getClassMapName(String orgClassName) {
+    ClassInfo classInfo = _orgNameClasses.get(orgClassName);
+    return classInfo != null ? classInfo._mapName : null;
   }
 
   public String getFieldOrgName(String className, String field, String descriptor) {

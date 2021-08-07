@@ -34,8 +34,23 @@ public class MappingRenamer implements IIdentifierRenamer {
     if (_mappingReader != null) {
       switch (elementType) {
         case ELEMENT_CLASS: {
-          if (_mappingReader.getClassOrgName(element) != null) {
-            return true;
+          String orgName = _mappingReader.getClassOrgName(element);
+          if (orgName != null) {
+            return !orgName.equals(element);
+          }
+          // in inner pass, will try to get new name for InnerClass
+          final int innerIndex = element.lastIndexOf('$');
+          if (innerIndex != -1) {
+            String mapName = _mappingReader.getClassMapName(element);
+            if (mapName != null) {
+              final int mapInnerIndex = mapName.lastIndexOf('$');
+              if (mapInnerIndex == -1) {
+                return true;
+              }
+              String orgInner = element.substring(innerIndex + 1);
+              String mapInner = mapName.substring(mapInnerIndex + 1);
+              return !orgInner.equals(mapInner);
+            }
           }
           break;
         }
@@ -62,6 +77,17 @@ public class MappingRenamer implements IIdentifierRenamer {
   public String getNextClassName(String fullName, String shortName) {
     String orgName = _mappingReader.getClassOrgName(fullName);
     if (orgName == null) {
+      // in inner pass, will try to get new name for InnerClass
+      final int innerIndex = fullName.lastIndexOf('$');
+      if (innerIndex != -1) {
+        String mapName = _mappingReader.getClassMapName(fullName);
+        if (mapName != null) {
+          String orgInner = fullName.substring(innerIndex + 1);
+          return orgInner;
+        }
+      }
+    }
+    if (orgName == null) {
       return _helper.getNextClassName(fullName, shortName);
     }
     int i = orgName.lastIndexOf('/');
@@ -83,6 +109,9 @@ public class MappingRenamer implements IIdentifierRenamer {
     String orgName = _mappingReader.getMethodOrgName(className, method, descriptor);
     if (orgName == null) {
       return _helper.getNextMethodName(className, method, descriptor);
+    }
+    if (orgName.equals("create")) {
+      System.out.println("create find");
     }
     return orgName;
   }
