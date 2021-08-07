@@ -2,6 +2,8 @@
 package org.jetbrains.java.decompiler.struct.gen.generics;
 
 import org.jetbrains.java.decompiler.code.CodeConstants;
+import org.jetbrains.java.decompiler.main.DecompilerContext;
+import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
 import org.jetbrains.java.decompiler.struct.gen.VarType;
 
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class GenericType {
   }
 
   public GenericType(String signature) {
+    PoolInterceptor interceptor = DecompilerContext.getPoolInterceptor();
     int type = 0;
     int arrayDim = 0;
     String value = null;
@@ -67,6 +70,10 @@ public class GenericType {
             if (argStart >= 0) {
               name = cl.substring(0, argStart);
               args = cl.substring(argStart + 1, cl.length() - 1);
+            }
+            String newName = interceptor.getName(name);
+            if (newName != null) {
+              name = newName;
             }
 
             if (cl.length() < signature.length()) {
