@@ -14,7 +14,7 @@ public class MappingRenamer implements IIdentifierRenamer {
     File file = new File("mapping.txt");
     if (file.canRead()) {
       _mappingReader = new MappingReader(file);
-      _mappingReader.dump();
+      //_mappingReader.dump();
     } else {
       _mappingReader = null;
     }
@@ -22,20 +22,15 @@ public class MappingRenamer implements IIdentifierRenamer {
 
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
-    String newSubName = _helper.renamePackage(oldParentPackage, newParentPackage, oldSubName);
-    if (!oldSubName.equals(newSubName) || !newParentPackage.equals(oldParentPackage)) {
-      if (oldParentPackage.length() == 0) {
-        System.out.printf("Rename package: %s -> %s\n", oldSubName, newSubName);
-      } else {
-        System.out.printf("Rename package: %s/%s -> %s/%s\n", oldParentPackage, oldSubName, newParentPackage, newSubName);
-      }
+    if (true) {
+      return oldSubName;
     }
+    String newSubName = _helper.renamePackage(oldParentPackage, newParentPackage, oldSubName);
     return newSubName;
   }
 
   @Override
   public boolean toBeRenamed(Type elementType, String className, String element, String descriptor) {
-    System.out.printf("toBeRenamed(%s) %s: %s, %s\n", elementType.name(), className, element, descriptor);
     if (_mappingReader != null) {
       switch (elementType) {
         case ELEMENT_CLASS: {
@@ -44,11 +39,20 @@ public class MappingRenamer implements IIdentifierRenamer {
           }
           break;
         }
-        case ELEMENT_FIELD:
-          if (_mappingReader.getFieldOrgName(className, element, descriptor) != null) {
+        case ELEMENT_FIELD: {
+          String orgName = _mappingReader.getFieldOrgName(className, element, descriptor);
+          if (orgName != null && !orgName.equals(element)) {
             return true;
           }
           break;
+        }
+        case ELEMENT_METHOD: {
+          String orgName = _mappingReader.getMethodOrgName(className, element, descriptor);
+          if (orgName != null && !orgName.equals(element)) {
+            return true;
+          }
+          break;
+        }
       }
     }
     return _helper.toBeRenamed(elementType, className, element, descriptor);
@@ -56,20 +60,30 @@ public class MappingRenamer implements IIdentifierRenamer {
 
   @Override
   public String getNextClassName(String fullName, String shortName) {
-    String newName = _helper.getNextClassName(fullName, shortName);
-    System.out.printf("Next class: %s(%s) -> %s\n", fullName, shortName, newName);
-    return newName;
+    String orgName = _mappingReader.getClassOrgName(fullName);
+    if (orgName == null) {
+      return _helper.getNextClassName(fullName, shortName);
+    }
+    int i = orgName.lastIndexOf('/');
+    orgName = orgName.substring(i + 1);
+    return orgName;
   }
 
   @Override
   public String getNextFieldName(String className, String field, String descriptor) {
-    String newName = _helper.getNextFieldName(className, field, descriptor);
-    return newName;
+    String orgName = _mappingReader.getFieldOrgName(className, field, descriptor);
+    if (orgName == null) {
+      return _helper.getNextFieldName(className, field, descriptor);
+    }
+    return orgName;
   }
 
   @Override
   public String getNextMethodName(String className, String method, String descriptor) {
-    String newName = _helper.getNextMethodName(className, method, descriptor);
-    return newName;
+    String orgName = _mappingReader.getMethodOrgName(className, method, descriptor);
+    if (orgName == null) {
+      return _helper.getNextMethodName(className, method, descriptor);
+    }
+    return orgName;
   }
 }

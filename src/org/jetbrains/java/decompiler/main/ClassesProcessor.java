@@ -77,7 +77,7 @@ public class ClassesProcessor implements CodeConstants {
               }
               else if (simpleName != null &&
                        renamer != null &&
-                       renamer.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_CLASS, simpleName, null, null)) {
+                       renamer.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_CLASS, simpleName, innerName, null)) {
                 simpleName = renamer.getNextClassName(innerName, simpleName);
                 mapNewSimpleNames.put(innerName, simpleName);
               }

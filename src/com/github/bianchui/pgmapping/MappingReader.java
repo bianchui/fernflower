@@ -264,11 +264,20 @@ public class MappingReader {
     return classInfo != null && !classInfo._orgName.equals(className) ? classInfo._orgName : null;
   }
 
-  public String getFieldOrgName(String className, String element, String descriptor) {
+  public String getFieldOrgName(String className, String field, String descriptor) {
     ClassInfo classInfo = _mapNameClasses.get(className);
-    if (classInfo != null) {
-      FieldInfo fieldInfo = classInfo._mapFields.get(element + " " + descriptor);
-      return fieldInfo == null ? fieldInfo._orgName : null;
+    if (classInfo != null && classInfo._mapFields != null) {
+      FieldInfo fieldInfo = classInfo._mapFields.get(field + " " + descriptor);
+      return fieldInfo != null ? fieldInfo._orgName : null;
+    }
+    return null;
+  }
+
+  public String getMethodOrgName(String className, String method, String descriptor) {
+    ClassInfo classInfo = _mapNameClasses.get(className);
+    if (classInfo != null && classInfo._mapMethods != null) {
+      MethodInfo methodInfo = classInfo._mapMethods.get(method + " " + descriptor);
+      return methodInfo != null ? methodInfo._orgName : null;
     }
     return null;
   }
