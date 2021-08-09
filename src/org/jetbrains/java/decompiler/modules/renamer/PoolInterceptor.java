@@ -15,6 +15,18 @@ public class PoolInterceptor {
 
   public String getName(String oldName) {
     return mapOldToNewNames.get(oldName);
+    String ret = mapOldToNewNames.get(oldName);
+    if (ret == null) {
+      String[] strings = oldName.split(" ");
+      if (strings.length == 3) {
+        strings[0] = getOldName(strings[0]);
+        if (strings[0] != null) {
+          oldName = strings[0] + " " + strings[1] + " " + strings[2];
+          ret = mapOldToNewNames.get(oldName);
+        }
+      }
+    }
+    return ret;
   }
 
   public String getOldName(String newName) {
