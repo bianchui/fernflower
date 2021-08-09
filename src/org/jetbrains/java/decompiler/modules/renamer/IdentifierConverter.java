@@ -34,11 +34,14 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
   public void rename() {
     try {
+      System.out.printf("----- rename [start]\n");
       buildInheritanceTree();
       renameAllClasses();
       renameInterfaces();
       renameClasses();
+      System.out.printf("----- rename [reload]\n");
       context.reloadContext();
+      System.out.printf("----- rename [end]\n");
     }
     catch (IOException ex) {
       throw new RuntimeException("Renaming failed!");
