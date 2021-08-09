@@ -93,7 +93,7 @@ public class ClassesProcessor implements CodeConstants {
                 continue;  // invalid name or self reference
               }
               // TODO: maybe can change [entry.simpleName] -> [rec.simpleName or simpleName]
-              if (rec.type == ClassNode.CLASS_MEMBER && !innerName.equals(enclClassName + '$' + entry.simpleName)) {
+              if (rec.type == ClassNode.CLASS_MEMBER && !innerName.equals(enclClassName + '$' + rec.simpleName)) {
                 continue;  // not a real inner class
               }
 

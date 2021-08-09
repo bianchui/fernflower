@@ -249,7 +249,11 @@ public class ExprProcessor implements CodeConstants {
 
     if (lst != null) {
       for (int i = 1; i < stat.getStats().size(); i++) {
-        map.put(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0], lst.get(i - 1));
+        try {
+          map.put(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0], lst.get(i - 1));
+        } catch (Throwable t) {
+          System.err.printf("ExprProcessor.collectCatchVars (%d) %s\n", i, t.toString());
+        }
       }
     }
 

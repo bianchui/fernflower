@@ -459,7 +459,11 @@ public class SSAConstructorSparseEx {
           map = new SFormsFastMapDirect();
           setCurrentVar(map, varindex, version);
 
-          extraVarVersions.put(dgraph.nodes.getWithKey(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0]).id, map);
+          try {
+            extraVarVersions.put(dgraph.nodes.getWithKey(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0]).id, map);
+          } catch (Throwable t) {
+            System.err.printf("SSAConstructorSparseEx.setCatchMaps (%d) %s\n", i, t.toString());
+          }
         }
     }
 

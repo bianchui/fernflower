@@ -343,7 +343,10 @@ public class ControlFlowGraph implements CodeConstants {
       BasicBlock from = instrBlocks.get(handler.from_instr);
       BasicBlock to = instrBlocks.get(handler.to_instr);
       BasicBlock handle = instrBlocks.get(handler.handler_instr);
-
+      if (from == null || to == null || handle == null) {
+        System.err.printf("ExceptionEdges (%d, %d) handler:%d not found\n", handler.from_instr, handler.to_instr, handler.handler_instr);
+        continue;
+      }
       String key = from.id + ":" + to.id + ":" + handle.id;
 
       if (mapRanges.containsKey(key)) {
