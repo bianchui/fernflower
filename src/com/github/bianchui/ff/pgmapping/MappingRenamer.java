@@ -1,4 +1,4 @@
-package com.github.bianchui.pgmapping;
+package com.github.bianchui.ff.pgmapping;
 
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;

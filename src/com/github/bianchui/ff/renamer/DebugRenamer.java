@@ -1,6 +1,6 @@
-package com.github.bianchui.ff_renamer;
+package com.github.bianchui.ff.renamer;
 
-import com.github.bianchui.pgmapping.MappingRenamer;
+import com.github.bianchui.ff.pgmapping.MappingRenamer;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 
 public class DebugRenamer implements IIdentifierRenamer {

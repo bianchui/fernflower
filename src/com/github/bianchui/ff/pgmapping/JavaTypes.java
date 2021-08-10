@@ -1,4 +1,4 @@
-package com.github.bianchui.pgmapping;
+package com.github.bianchui.ff.pgmapping;
 
 public final class JavaTypes {
   public static String mapJavaTypeToSignature(String type) {

@@ -1,4 +1,4 @@
-package com.github.bianchui.pgmapping;
+package com.github.bianchui.ff.pgmapping;
 
 import java.io.BufferedReader;
 import java.io.File;
