@@ -1,6 +1,7 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.modules.decompiler.sforms;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.code.CodeConstants;
 import org.jetbrains.java.decompiler.modules.decompiler.exps.AssignmentExprent;
 import org.jetbrains.java.decompiler.modules.decompiler.exps.Exprent;
@@ -462,7 +463,7 @@ public class SSAConstructorSparseEx {
           try {
             extraVarVersions.put(dgraph.nodes.getWithKey(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0]).id, map);
           } catch (Throwable t) {
-            System.err.printf("SSAConstructorSparseEx.setCatchMaps (%d) %s\n", i, t.toString());
+            MyLogger.error("SSAConstructorSparseEx.setCatchMaps (%d) %s", i, t.toString());
           }
         }
     }

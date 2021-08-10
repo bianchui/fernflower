@@ -1,6 +1,7 @@
 // Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.main.rels;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.code.CodeConstants;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.collectors.CounterContainer;
@@ -58,6 +59,8 @@ public class ClassWrapper {
 
       try {
         if (mt.containsCode()) {
+          System.out.printf("---- Processing function %s %s\n", mt.getName(), mt.getDescriptor());
+          MyLogger.currentMethod = mt;
           if (maxSec == 0 || testMode) {
             root = MethodProcessorRunnable.codeToJava(classStruct, mt, md, varProc);
           }

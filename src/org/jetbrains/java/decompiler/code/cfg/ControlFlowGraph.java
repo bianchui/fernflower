@@ -1,6 +1,7 @@
 // Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.code.cfg;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.code.*;
 import org.jetbrains.java.decompiler.code.interpreter.InstructionImpact;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
@@ -344,7 +345,7 @@ public class ControlFlowGraph implements CodeConstants {
       BasicBlock to = instrBlocks.get(handler.to_instr);
       BasicBlock handle = instrBlocks.get(handler.handler_instr);
       if (from == null || to == null || handle == null) {
-        System.err.printf("ExceptionEdges (%d, %d) handler:%d not found\n", handler.from_instr, handler.to_instr, handler.handler_instr);
+        MyLogger.error("ExceptionEdges (%d, %d) handler:%d not found", handler.from_instr, handler.to_instr, handler.handler_instr);
         continue;
       }
       String key = from.id + ":" + to.id + ":" + handle.id;

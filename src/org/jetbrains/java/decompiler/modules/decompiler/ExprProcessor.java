@@ -1,6 +1,7 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.modules.decompiler;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.code.CodeConstants;
 import org.jetbrains.java.decompiler.code.Instruction;
 import org.jetbrains.java.decompiler.code.InstructionSequence;
@@ -252,7 +253,7 @@ public class ExprProcessor implements CodeConstants {
         try {
           map.put(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0], lst.get(i - 1));
         } catch (Throwable t) {
-          System.err.printf("ExprProcessor.collectCatchVars (%d) %s\n", i, t.toString());
+          MyLogger.error("ExprProcessor.collectCatchVars (%d) %s", i, t.toString());
         }
       }
     }
