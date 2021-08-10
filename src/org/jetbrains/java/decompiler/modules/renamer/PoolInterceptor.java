@@ -14,7 +14,6 @@ public class PoolInterceptor {
   }
 
   public String getName(String oldName) {
-    return mapOldToNewNames.get(oldName);
     String ret = mapOldToNewNames.get(oldName);
     if (ret == null) {
       String[] strings = oldName.split(" ");
