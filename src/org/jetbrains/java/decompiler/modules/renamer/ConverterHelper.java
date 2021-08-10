@@ -27,16 +27,7 @@ public class ConverterHelper implements IIdentifierRenamer {
 
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
-    String newSubName = oldSubName;
-    // DO renames
-    if (!oldSubName.equals(newSubName) || !newParentPackage.equals(oldParentPackage)) {
-      if (oldParentPackage.length() == 0) {
-        System.out.printf("Rename package: %s -> %s\n", oldSubName, newSubName);
-      } else {
-        System.out.printf("Rename package: %s/%s -> %s/%s\n", oldParentPackage, oldSubName, newParentPackage, newSubName);
-      }
-    }
-    return newSubName;
+    return oldSubName;
   }
 
   @Override

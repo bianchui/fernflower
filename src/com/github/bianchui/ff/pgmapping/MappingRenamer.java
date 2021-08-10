@@ -20,13 +20,17 @@ public class MappingRenamer implements IIdentifierRenamer {
     }
   }
 
+  private static String concatPackage(String parent, String subName) {
+    return parent == null || parent.length() == 0 ? subName : parent + '/' + subName;
+  }
+
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
-    if (true) {
-      return oldSubName;
+    String orgPackage = _mappingReader.getOrgPackage(concatPackage(oldParentPackage, oldSubName));
+    if (orgPackage != null) {
+      return orgPackage.substring(orgPackage.lastIndexOf('/') + 1);
     }
-    String newSubName = _helper.renamePackage(oldParentPackage, newParentPackage, oldSubName);
-    return newSubName;
+    return _helper.renamePackage(oldParentPackage, newParentPackage, oldSubName);
   }
 
   @Override
@@ -36,6 +40,9 @@ public class MappingRenamer implements IIdentifierRenamer {
         case ELEMENT_CLASS: {
           String orgName = _mappingReader.getClassOrgName(element);
           if (orgName != null) {
+            //if (orgName.lastIndexOf('$') != -1) {
+            //  return false;
+            //}
             return !orgName.equals(element);
           }
           // in inner pass, will try to get new name for InnerClass

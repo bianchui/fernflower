@@ -19,6 +19,27 @@ public class DebugRenamer implements IIdentifierRenamer {
     return newSubName;
   }
 
+  /**
+   *
+   * @param elementType
+   *    Type.ELEMENT_CLASS:
+   *      renameClass pass:
+   *        className: shortName
+   *        element: canonicalName without package change
+   *        descriptor: null
+   *      innerClass pass:
+   *        className: shortInnerName
+   *        element: canonicalName with package change
+   *        descriptor: null
+   *    Type.ELEMENT_FIELD:
+   *      className: canonicalName
+   *    Type.ELEMENT_METHOD:
+   *
+   * @param className
+   * @param element
+   * @param descriptor
+   * @return
+   */
   @Override
   public boolean toBeRenamed(Type elementType, String className, String element, String descriptor) {
     boolean rename = _renamer.toBeRenamed(elementType, className, element, descriptor);

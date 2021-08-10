@@ -230,6 +230,11 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
   public void saveClassEntry(String path, String archiveName, String qualifiedName, String entryName, String content) {
     String file = new File(getAbsolutePath(path), archiveName).getPath();
 
+    // [BC] not save directory
+    if (entryName.endsWith("/")) {
+      return;
+    }
+
     if (!checkEntry(entryName, file)) {
       return;
     }

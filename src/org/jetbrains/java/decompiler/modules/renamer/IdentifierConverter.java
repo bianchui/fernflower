@@ -201,7 +201,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
       String classNewFullName;
 
       do {
-        String classname = helper.getNextClassName(classFullName, ConverterHelper.getSimpleClassName(classFullName));
+        String classname = helper.getNextClassName(classOldFullName, ConverterHelper.getSimpleClassName(classFullName));
         classNewFullName = ConverterHelper.replaceSimpleClassName(classFullName, classname);
       }
       while (context.getClasses().containsKey(classNewFullName));

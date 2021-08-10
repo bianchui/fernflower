@@ -1,5 +1,7 @@
 package com.github.bianchui.ff.pgmapping;
 
+import com.github.bianchui.ff.utils.StringUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -58,10 +60,34 @@ public class MappingReader {
   private final List<ClassInfo> _classes = new ArrayList<>();
   private final Map<String, ClassInfo> _orgNameClasses = new HashMap<>();
   private final Map<String, ClassInfo> _mapNameClasses = new HashMap<>();
+  private final Map<String, String> _mapPackages = new HashMap<>();
 
   public MappingReader(File file) {
     readFile(file);
     processMapping();
+  }
+
+  private void mapPackageForClass(String orgClsName, String mapClsName) {
+    final int classSp = mapClsName.lastIndexOf('/');
+    if (classSp <= 0 || StringUtil.countSp(orgClsName, '/') != StringUtil.countSp(mapClsName, '/')) {
+      return;
+    }
+    if (_mapPackages.containsKey(mapClsName.substring(0, classSp))) {
+      return;
+    }
+    int iMap = 0, iOrg = 0;
+    while ((iMap = (mapClsName.indexOf('/', iMap) + 1)) != 0) {
+      iOrg = orgClsName.indexOf('/', iOrg) + 1;
+      final String mapPkg = mapClsName.substring(0, iMap - 1);
+      final String orgPkg = orgClsName.substring(0, iOrg - 1);
+      if (!orgPkg.equals(mapPkg) && !_mapPackages.containsKey(mapPkg)) {
+        _mapPackages.put(mapPkg, orgPkg);
+      }
+    }
+  }
+
+  public String getOrgPackage(String mapPkg) {
+    return _mapPackages.get(mapPkg);
   }
 
   private void readFile(File file) {
@@ -160,6 +186,7 @@ public class MappingReader {
               _classes.add(cls);
               _orgNameClasses.put(orgName, cls);
               _mapNameClasses.put(mapName, cls);
+              mapPackageForClass(orgName, mapName);
             }
           }
         }
