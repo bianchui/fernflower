@@ -36,8 +36,11 @@ public class IdentifierConverter implements NewClassNameBuilder {
     try {
       System.out.printf("----- rename [start]\n");
       buildInheritanceTree();
+      System.out.printf("----- rename [all classes]\n");
       renameAllClasses();
+      System.out.printf("----- rename [interfaces]\n");
       renameInterfaces();
+      System.out.printf("----- rename [classes]\n");
       renameClasses();
       System.out.printf("----- rename [reload]\n");
       context.reloadContext();
@@ -395,7 +398,8 @@ public class IdentifierConverter implements NewClassNameBuilder {
         }
 
         if (!isNewNode) {
-          break;
+          // [BC] fix missing process parent trees
+          continue;
         }
         else {
           boolean isInterface = clStr.hasModifier(CodeConstants.ACC_INTERFACE);
