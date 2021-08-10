@@ -56,15 +56,15 @@ public class MappingRenamer implements IIdentifierRenamer {
         }
         case ELEMENT_FIELD: {
           String orgName = _mappingReader.getFieldOrgName(className, element, descriptor);
-          if (orgName != null && !orgName.equals(element)) {
-            return true;
+          if (orgName != null) {
+            return !orgName.equals(element);
           }
           break;
         }
         case ELEMENT_METHOD: {
           String orgName = _mappingReader.getMethodOrgName(className, element, descriptor);
-          if (orgName != null && !orgName.equals(element)) {
-            return true;
+          if (orgName != null) {
+            return !orgName.equals(element);
           }
           break;
         }
@@ -109,9 +109,6 @@ public class MappingRenamer implements IIdentifierRenamer {
     String orgName = _mappingReader.getMethodOrgName(className, method, descriptor);
     if (orgName == null) {
       return _helper.getNextMethodName(className, method, descriptor);
-    }
-    if (orgName.equals("create")) {
-      System.out.println("create find");
     }
     return orgName;
   }

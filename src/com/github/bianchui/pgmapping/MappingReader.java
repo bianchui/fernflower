@@ -93,10 +93,11 @@ public class MappingReader {
           if (nameSp == -1) {
             continue;
           }
+          final boolean isMethod = line.indexOf('(') >= 0;
           final int startSp = line.lastIndexOf(':', nameSp);
           final String orgStr = line.substring(startSp + 1, nameSp).trim();
           final String mapName = line.substring(nameSp + kNameSp.length()).trim();
-          if (startSp != -1) {
+          if (isMethod) {
             // method
             final int iNameEnd = orgStr.indexOf('(');
             final int iParamEnd = orgStr.indexOf(')', iNameEnd + 1);

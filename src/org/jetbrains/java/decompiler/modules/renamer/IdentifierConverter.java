@@ -216,6 +216,15 @@ public class IdentifierConverter implements NewClassNameBuilder {
     }
   }
 
+  // [BC] add for overload
+  private static String getParamsDescriptor(String desc) {
+    final int last = desc.lastIndexOf(')');
+    if (last >= 0) {
+      desc = desc.substring(0, last + 1);
+    }
+    return desc;
+  }
+
   private void renameClassIdentifiers(StructClass cl, Map<String, String> names) {
     // all classes are already renamed
     String classOldFullName = cl.qualifiedName;
@@ -228,7 +237,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
     // methods
     HashSet<String> setMethodNames = new HashSet<>();
     for (StructMethod md : cl.getMethods()) {
-      setMethodNames.add(md.getName());
+      // [BC] change for overload
+      final String paramsDescriptor = getParamsDescriptor(md.getDescriptor());
+      setMethodNames.add(md.getName() + ' ' + paramsDescriptor);
     }
 
     VBStyleCollection<StructMethod, String> methods = cl.getMethods();
@@ -248,10 +259,12 @@ public class IdentifierConverter implements NewClassNameBuilder {
       }
       else if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
         if (isPrivate || !names.containsKey(key)) {
+          final String paramsDescriptor = getParamsDescriptor(mt.getDescriptor());
           do {
             name = helper.getNextMethodName(classOldFullName, name, mt.getDescriptor());
           }
-          while (setMethodNames.contains(name));
+          while (setMethodNames.contains(name + ' ' + paramsDescriptor));
+          setMethodNames.add(name + ' ' + paramsDescriptor);
 
           if (!isPrivate) {
             names.put(key, name);
