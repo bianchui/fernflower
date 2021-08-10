@@ -1,6 +1,7 @@
 // Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.struct;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences;
 import org.jetbrains.java.decompiler.main.extern.IResultSaver;
@@ -132,6 +133,7 @@ public class ContextUnit {
         for (int i = 0; i < classes.size(); i++) {
           StructClass cl = classes.get(i);
           String entryName = decompiledData.getClassEntryName(cl, classEntries.get(i));
+          MyLogger.log("---- Class: %s, entry %s\n", cl.qualifiedName, entryName);
           if (entryName != null) {
             String content = decompiledData.getClassContent(cl);
             resultSaver.saveClassEntry(archivePath, filename, cl.qualifiedName, entryName, content);

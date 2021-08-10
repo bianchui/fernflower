@@ -6,6 +6,14 @@ import org.jetbrains.java.decompiler.struct.StructMethod;
 
 public class MyLogger {
   public static StructMethod currentMethod;
+  private static final boolean DEBUG = false;
+  public static void log(String format, Object ... args) {
+    if (!DEBUG) {
+      return;
+    }
+    System.out.printf(format, args);
+  }
+
   public static void error(String format, Object ... args) {
     StructClass currentClass = (StructClass)DecompilerContext.getProperty(DecompilerContext.CURRENT_CLASS);
     String s = String.format(format, args);

@@ -176,10 +176,7 @@ public class ConstantPool implements NewClassNameBuilder {
       if (cn.type == CodeConstants.CONSTANT_Class) {
         String newName = buildNewClassname(cn.getString());
         if (newName != null) {
-          System.out.printf("Class for %s -> %s\n", cn.getString(), newName);
           cn = new PrimitiveConstant(CodeConstants.CONSTANT_Class, newName);
-        } else {
-          System.out.printf("Keep class %s\n", cn.getString());
         }
       }
     }

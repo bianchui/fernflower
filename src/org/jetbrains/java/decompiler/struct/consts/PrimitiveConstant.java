@@ -22,7 +22,6 @@ public class PrimitiveConstant extends PooledConstant {
     if (type == CONSTANT_Class) {
       String className = getString();
       isArray = (className.length() > 0 && className.charAt(0) == '['); // empty string for a class name seems to be possible in some android files
-      System.out.printf("Primitive init class [%d]%s\n", this.index, className);
     }
   }
 
@@ -37,10 +36,7 @@ public class PrimitiveConstant extends PooledConstant {
       if (type == CONSTANT_Class) {
         String newValue = pool.buildNewClassname(getString());
         if (newValue != null) {
-          System.out.printf("Primitive Resolve class [%d]%s -> %s\n", this.index, value, newValue);
           value = newValue;
-        } else {
-          System.out.printf("Primitive Resolve class [%d]%s keep\n", this.index, value);
         }
       }
       initConstant();
