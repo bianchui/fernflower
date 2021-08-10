@@ -339,6 +339,12 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
         interceptor.addName(classOldFullName + " " + fd.getName() + " " + fd.getDescriptor(),
                             classNewFullName + " " + newName + " " + buildNewDescriptor(true, fd.getDescriptor()));
+
+        boolean isPrivate = fd.hasModifier(CodeConstants.ACC_PRIVATE);
+
+        if (!isPrivate) {
+          names.put(fd.getName() + " " + fd.getDescriptor(), newName);
+        }
       }
     }
   }
