@@ -64,6 +64,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
         Map<String, String> mapClass = classNameMaps.get(cl.superClass.getString());
         if (mapClass != null) {
           names.putAll(mapClass);
+          fixSuperMembers(cl, cl.superClass.getString(), mapClass);
         }
       }
 
@@ -76,8 +77,12 @@ public class IdentifierConverter implements NewClassNameBuilder {
         else {
           StructClass clintr = context.getClass(ifName);
           if (clintr != null) {
-            names.putAll(processExternalInterface(clintr));
+            mapInt = processExternalInterface(clintr);
+            names.putAll(mapInt);
           }
+        }
+        if (mapInt != null) {
+          fixSuperMembers(cl, ifName, mapInt);
         }
       }
 
@@ -100,8 +105,12 @@ public class IdentifierConverter implements NewClassNameBuilder {
       else {
         StructClass clintr = context.getClass(ifName);
         if (clintr != null) {
-          names.putAll(processExternalInterface(clintr));
+          mapInt = processExternalInterface(clintr);
+          names.putAll(mapInt);
         }
+      }
+      if (mapInt != null) {
+        fixSuperMembers(cl, ifName, mapInt);
       }
     }
 
@@ -125,6 +134,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
         Map<String, String> mapInt = interfaceNameMaps.get(ifName);
         if (mapInt != null) {
           names.putAll(mapInt);
+          fixSuperMembers(cl, ifName, mapInt);
         }
       }
 
@@ -134,6 +144,31 @@ public class IdentifierConverter implements NewClassNameBuilder {
     }
 
     this.interfaceNameMaps = interfaceNameMaps;
+  }
+
+  // [BC]
+  private void fixSuperMembers(StructClass thisCls, String superClsName, Map<String, String> names) {
+    String newClsName = interceptor.getName(thisCls.qualifiedName);
+    if (newClsName == null) {
+      newClsName = thisCls.qualifiedName;
+    }
+
+    for (Map.Entry<String, String> entry : names.entrySet()) {
+      final String key = entry.getKey();
+      String[] keys = key.split(" ");
+      if (keys.length == 2) {
+        if (!keys[0].equals(entry.getValue())) {
+          final String superNewName = interceptor.getName(superClsName + " " + key);
+          String[] newNames = superNewName.split(" ");
+          final String oldName = thisCls.qualifiedName + " " + key;
+          final String newName = newClsName + " " + newNames[1] + " " + newNames[2];
+          if (interceptor.getName(oldName) == null) {
+            System.out.printf("Fix name map %s -> %s\n", oldName, newName);
+          }
+          interceptor.addName(oldName, newName);
+        }
+      }
+    }
   }
 
   private void renameAllClasses() {
@@ -260,7 +295,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
           names.put(key, name);
         }
       }
-      else if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
+      else if (!names.containsKey(key) && helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
         if (isPrivate || !names.containsKey(key)) {
           final String paramsDescriptor = getParamsDescriptor(mt.getDescriptor());
           do {
@@ -433,5 +468,25 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
     this.rootClasses = rootClasses;
     this.rootInterfaces = rootInterfaces;
+
+    System.out.println("----------------------------------------");
+    System.out.println("---- Interface tree");
+    System.out.println("----------------------------------------");
+    dumpClssTree(rootInterfaces, "");
+    System.out.println("----------------------------------------");
+    System.out.println("---- Class tree");
+    System.out.println("----------------------------------------");
+    dumpClssTree(rootClasses, "");
+    System.out.println("----------------------------------------");
+  }
+
+  private static void dumpClssTree(List<ClassWrapperNode> tree, String indent) {
+    if (tree == null) {
+      return;
+    }
+    for (ClassWrapperNode cls : tree) {
+      System.out.printf("%s+ %s\n", indent, cls.getClassStruct().qualifiedName);
+      dumpClssTree(cls.getSubclasses(), indent + "  ");
+    }
   }
 }
