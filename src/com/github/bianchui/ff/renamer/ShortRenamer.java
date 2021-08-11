@@ -1,11 +1,7 @@
 package com.github.bianchui.ff.renamer;
 
-import com.github.bianchui.ff.pgmapping.MappingReader;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
-
-import java.io.File;
-import java.util.Map;
 
 public class ShortRenamer implements IIdentifierRenamer {
   private final ConverterHelper _helper = new ConverterHelper();

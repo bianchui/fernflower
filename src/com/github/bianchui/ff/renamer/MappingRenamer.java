@@ -2,16 +2,15 @@ package com.github.bianchui.ff.renamer;
 
 import com.github.bianchui.ff.pgmapping.MappingReader;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
-import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
 
 import java.io.File;
 
 public class MappingRenamer implements IIdentifierRenamer {
-  private final ConverterHelper _helper;
+  private final ShortRenamer _helper;
   private final MappingReader _mappingReader;
 
   public MappingRenamer() {
-    _helper = new ConverterHelper();
+    _helper = new ShortRenamer();
     File file = new File("mapping.txt");
     if (file.canRead()) {
       _mappingReader = new MappingReader(file);
