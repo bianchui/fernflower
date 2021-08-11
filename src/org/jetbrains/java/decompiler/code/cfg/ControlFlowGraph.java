@@ -345,7 +345,7 @@ public class ControlFlowGraph implements CodeConstants {
       BasicBlock to = instrBlocks.get(handler.to_instr);
       BasicBlock handle = instrBlocks.get(handler.handler_instr);
       if (from == null || to == null || handle == null) {
-        MyLogger.error("ExceptionEdges (%d, %d) handler:%d not found", handler.from_instr, handler.to_instr, handler.handler_instr);
+        MyLogger.decompile_error("ExceptionEdges (%d, %d) handler:%d not found", handler.from_instr, handler.to_instr, handler.handler_instr);
         continue;
       }
       String key = from.id + ":" + to.id + ":" + handle.id;

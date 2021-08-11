@@ -463,7 +463,7 @@ public class SSAConstructorSparseEx {
           try {
             extraVarVersions.put(dgraph.nodes.getWithKey(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0]).id, map);
           } catch (Throwable t) {
-            MyLogger.error("SSAConstructorSparseEx.setCatchMaps (%d) %s", i, t.toString());
+            MyLogger.decompile_error("SSAConstructorSparseEx.setCatchMaps (%d) %s", i, t.toString());
           }
         }
     }

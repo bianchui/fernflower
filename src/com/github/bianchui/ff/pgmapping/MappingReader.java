@@ -13,12 +13,12 @@ import java.util.Map;
 
 public class MappingReader {
   private static class FieldInfo {
-    String _fieldOrg; // java.lang.String TAG
-    String _orgType;
-    String _orgName;
-    String _mapType; // gen in processMapping
-    String _mapDesc; // gen in processMapping
-    String _mapName;
+    String _fieldOrg; // "java/lang/String TAG"
+    String _orgType; // "java/lang/String"
+    String _orgName; // "TAG"
+    String _mapType; // "java/lang/String" gen in processMapping
+    String _mapDesc; // "Ljava/lang/String;" gen in processMapping
+    String _mapName; // "a"
 
     String orgField() {
       return String.format("%s %s;", _orgType, _orgName);
@@ -31,13 +31,13 @@ public class MappingReader {
     }
   }
   private static class MethodInfo {
-    String _methodOrg; // java.lang.String[] method(java.lang.String,int)
-    String _orgRetType;
-    String _orgArgs;
-    String _orgSig;
-    String _orgName;
-    String _mapSig; // gen in processMapping
-    String _mapName;
+    String _methodOrg; // "java/lang/String[] method(java/lang/String,int)"
+    String _orgRetType; // "java/lang/String[]"
+    String _orgArgs; // "java/lang/String,int"
+    String _orgSig; // "Ljava/lang/String;I"
+    String _orgName; // "method"
+    String _mapSig; // "(Ljava/lang/String;I)[Ljava/lang/String;" gen in processMapping
+    String _mapName; // "a"
 
     String orgFunction() {
       return String.format("%s %s(%s); // %s", _orgRetType, _orgName, _orgArgs, _orgSig);

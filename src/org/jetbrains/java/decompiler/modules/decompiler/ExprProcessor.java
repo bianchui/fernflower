@@ -253,7 +253,7 @@ public class ExprProcessor implements CodeConstants {
         try {
           map.put(flatthelper.getMapDestinationNodes().get(stat.getStats().get(i).id)[0], lst.get(i - 1));
         } catch (Throwable t) {
-          MyLogger.error("ExprProcessor.collectCatchVars (%d) %s", i, t.toString());
+          MyLogger.decompile_error("ExprProcessor.collectCatchVars (%d) %s", i, t.toString());
         }
       }
     }

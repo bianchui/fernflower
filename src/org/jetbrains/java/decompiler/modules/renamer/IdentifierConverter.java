@@ -1,6 +1,7 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.modules.renamer;
 
+import com.github.bianchui.ff.utils.MyLogger;
 import org.jetbrains.java.decompiler.code.CodeConstants;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.struct.StructClass;
@@ -163,7 +164,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
           final String oldName = thisCls.qualifiedName + " " + key;
           final String newName = newClsName + " " + newNames[1] + " " + newNames[2];
           if (interceptor.getName(oldName) == null) {
-            System.out.printf("Fix name map %s -> %s\n", oldName, newName);
+            MyLogger.rename_log("Fix name map %s -> %s\n", oldName, newName);
           }
           interceptor.addName(oldName, newName);
         }
@@ -475,24 +476,35 @@ public class IdentifierConverter implements NewClassNameBuilder {
     this.rootClasses = rootClasses;
     this.rootInterfaces = rootInterfaces;
 
+    Comparator<ClassWrapperNode> comparator = new Comparator<ClassWrapperNode>() {
+      @Override
+      public int compare(ClassWrapperNode o1, ClassWrapperNode o2) {
+        return o1.getClassStruct().qualifiedName.compareTo(o2.getClassStruct().qualifiedName);
+      }
+    };
+
     System.out.println("----------------------------------------");
     System.out.println("---- Interface tree");
     System.out.println("----------------------------------------");
-    dumpClssTree(rootInterfaces, "");
+    dumpClssTree(rootInterfaces, "", comparator);
     System.out.println("----------------------------------------");
     System.out.println("---- Class tree");
     System.out.println("----------------------------------------");
-    dumpClssTree(rootClasses, "");
+    dumpClssTree(rootClasses, "", comparator);
     System.out.println("----------------------------------------");
   }
 
-  private static void dumpClssTree(List<ClassWrapperNode> tree, String indent) {
+  private static void dumpClssTree(List<ClassWrapperNode> tree, String indent, Comparator<ClassWrapperNode> comparator) {
     if (tree == null) {
       return;
     }
+    if (comparator != null) {
+      tree = new ArrayList<>(tree);
+      tree.sort(comparator);
+    }
     for (ClassWrapperNode cls : tree) {
       System.out.printf("%s+ %s\n", indent, cls.getClassStruct().qualifiedName);
-      dumpClssTree(cls.getSubclasses(), indent + "  ");
+      dumpClssTree(cls.getSubclasses(), indent + "  ", comparator);
     }
   }
 }
