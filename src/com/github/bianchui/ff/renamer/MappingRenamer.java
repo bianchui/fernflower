@@ -49,27 +49,25 @@ public class MappingRenamer implements IIdentifierRenamer {
               return !orgName.equals(element);
             }
             // if inner class, get outer class name test for rename
-            int outerEnd = element.indexOf('$', element.lastIndexOf('/') + 1);
-            if (outerEnd != -1) {
-              // test all possible mapping record names
-              while (true) {
-                final String outerFullName = element.substring(0, outerEnd);
-                orgName = _mappingReader.getClassOrgName(outerFullName);
-                if (orgName == null) {
-                  break;
-                }
-                if (!orgName.equals(outerFullName)) {
-                  return true;
-                }
-                final int newEnd = element.indexOf('$', outerEnd + 1);
-                if (newEnd == -1) {
-                  break;
-                }
-                outerEnd = newEnd + 1;
+            int nameStart = element.lastIndexOf('/') + 1;
+            // test all possible mapping record names
+            while (true) {
+              final int outerEnd = element.indexOf('$', nameStart);
+              if (outerEnd == -1) {
+                break;
               }
-              // test rest of inner name for rename
-              return _shortRenamer.isClassNeedRenamed(element.substring(outerEnd + 1));
+              final String outerFullName = element.substring(0, outerEnd);
+              orgName = _mappingReader.getClassOrgName(outerFullName);
+              if (orgName == null) {
+                break;
+              }
+              if (!orgName.equals(outerFullName)) {
+                return true;
+              }
+              nameStart = outerEnd + 1;
             }
+            // test rest of inner name for rename
+            return _shortRenamer.isClassNeedRenamed(element.substring(nameStart));
           } else {
 
             // in inner pass, will try to get new name for InnerClass
@@ -109,32 +107,31 @@ public class MappingRenamer implements IIdentifierRenamer {
           return ClassUtil.getClassShortName(orgName);
         }
         // if inner class, get outer class name test for rename
-        int outerEnd = fullName.indexOf('$', fullName.lastIndexOf('/') + 1);
-        if (outerEnd != -1) {
-          // test all possible mapping record names
-          int innerLevel = 0;
-          while (true) {
-            final String outerFullName = fullName.substring(0, outerEnd);
-            final String curOrgName = _mappingReader.getClassOrgName(outerFullName);
-            if (curOrgName == null) {
-              break;
-            }
-            orgName = curOrgName;
-            ++innerLevel;
-            final int newEnd = fullName.indexOf('$', outerEnd + 1);
-            if (newEnd == -1) {
-              break;
-            }
-            outerEnd = newEnd;
+        int nameStart = fullName.lastIndexOf('/') + 1;
+
+        // test all possible mapping record names
+        int innerLevel = 0;
+        while (true) {
+          int outerEnd = fullName.indexOf('$', nameStart);
+          if (outerEnd == -1) {
+            break;
           }
-          // test rest of inner name for rename
-          StringBuilder sb = new StringBuilder();
-          if (orgName != null) {
-            sb.append(ClassUtil.getClassShortName(orgName));
+          final String outerFullName = fullName.substring(0, outerEnd);
+          final String curOrgName = _mappingReader.getClassOrgName(outerFullName);
+          if (curOrgName == null) {
+            break;
           }
-          _shortRenamer.renameInnerClass(fullName.substring(outerEnd + 1), 0, innerLevel, sb);
-          return sb.toString();
+          orgName = curOrgName;
+          ++innerLevel;
+          nameStart = outerEnd + 1;
         }
+        // test rest of inner name for rename
+        StringBuilder sb = new StringBuilder();
+        if (orgName != null) {
+          sb.append(ClassUtil.getClassShortName(orgName));
+        }
+        _shortRenamer.renameInnerClass(fullName.substring(nameStart), 0, innerLevel, sb);
+        return sb.toString();
       } else {
         // in inner pass, name already in fullName so just get it
         final int innerIndex = fullName.lastIndexOf('$');
