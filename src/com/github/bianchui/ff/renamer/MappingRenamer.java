@@ -1,16 +1,18 @@
 package com.github.bianchui.ff.renamer;
 
 import com.github.bianchui.ff.pgmapping.MappingReader;
+import com.github.bianchui.ff.utils.ClassUtil;
+import com.github.bianchui.ff.utils.RenamerUtil;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 
 import java.io.File;
 
 public class MappingRenamer implements IIdentifierRenamer {
-  private final IIdentifierRenamer _fallbackRenamer;
+  private final ShortRenamer _shortRenamer;
   private final MappingReader _mappingReader;
 
   public MappingRenamer() {
-    _fallbackRenamer = new ShortRenamer();
+    _shortRenamer = new ShortRenamer();
     File file = new File("mapping.txt");
     if (file.canRead()) {
       _mappingReader = new MappingReader(file);
@@ -32,7 +34,7 @@ public class MappingRenamer implements IIdentifierRenamer {
         return orgPackage.substring(orgPackage.lastIndexOf('/') + 1);
       }
     }
-    return _fallbackRenamer.renamePackage(oldParentPackage, newParentPackage, oldSubName);
+    return _shortRenamer.renamePackage(oldParentPackage, newParentPackage, oldSubName);
   }
 
   @Override
@@ -40,25 +42,40 @@ public class MappingRenamer implements IIdentifierRenamer {
     if (_mappingReader != null) {
       switch (elementType) {
         case ELEMENT_CLASS: {
-          String orgName = _mappingReader.getClassOrgName(element);
-          if (orgName != null) {
-            //if (orgName.lastIndexOf('$') != -1) {
-            //  return false;
-            //}
-            return !orgName.equals(element);
-          }
-          // in inner pass, will try to get new name for InnerClass
-          final int innerIndex = element.lastIndexOf('$');
-          if (innerIndex != -1) {
-            String mapName = _mappingReader.getClassMapName(element);
-            if (mapName != null) {
-              final int mapInnerIndex = mapName.lastIndexOf('$');
-              if (mapInnerIndex == -1) {
-                return true;
+          final boolean renameAllPass = RenamerUtil.isRenameAllPass(className, element);
+          if (renameAllPass) {
+            String orgName = _mappingReader.getClassOrgName(element);
+            if (orgName != null) {
+              return !orgName.equals(element);
+            }
+            // if inner class, get outer class name test for rename
+            int outerEnd = element.indexOf('$', element.lastIndexOf('/') + 1);
+            if (outerEnd != -1) {
+              // test all possible mapping record names
+              while (true) {
+                final String outerFullName = element.substring(0, outerEnd);
+                orgName = _mappingReader.getClassOrgName(outerFullName);
+                if (orgName == null) {
+                  break;
+                }
+                if (!orgName.equals(outerFullName)) {
+                  return true;
+                }
+                final int newEnd = element.indexOf('$', outerEnd + 1);
+                if (newEnd == -1) {
+                  break;
+                }
+                outerEnd = newEnd + 1;
               }
-              String orgInner = element.substring(innerIndex + 1);
-              String mapInner = mapName.substring(mapInnerIndex + 1);
-              return !orgInner.equals(mapInner);
+              // test rest of inner name for rename
+              return _shortRenamer.isClassNeedRenamed(element.substring(outerEnd + 1));
+            }
+          } else {
+
+            // in inner pass, will try to get new name for InnerClass
+            final String innerName = ClassUtil.getClassInnerName(element);
+            if (innerName != null) {
+              return !innerName.equals(className);
             }
           }
           break;
@@ -79,32 +96,54 @@ public class MappingRenamer implements IIdentifierRenamer {
         }
       }
     }
-    return _fallbackRenamer.toBeRenamed(elementType, className, element, descriptor);
+    return _shortRenamer.toBeRenamed(elementType, className, element, descriptor);
   }
 
   @Override
-  public String getNextClassName(String fullName, String shortName) {
-    String orgName = null;
+  public String getNextClassName(final String fullName, final String shortName) {
     if (_mappingReader != null) {
-      orgName = _mappingReader.getClassOrgName(fullName);
-      if (orgName == null) {
-        // in inner pass, will try to get new name for InnerClass
+      final boolean renameAllPass = RenamerUtil.isRenameAllPass(shortName, fullName);
+      if (renameAllPass) {
+        String orgName = _mappingReader.getClassOrgName(fullName);
+        if (orgName != null) {
+          return ClassUtil.getClassShortName(orgName);
+        }
+        // if inner class, get outer class name test for rename
+        int outerEnd = fullName.indexOf('$', fullName.lastIndexOf('/') + 1);
+        if (outerEnd != -1) {
+          // test all possible mapping record names
+          int innerLevel = 0;
+          while (true) {
+            final String outerFullName = fullName.substring(0, outerEnd);
+            final String curOrgName = _mappingReader.getClassOrgName(outerFullName);
+            if (curOrgName == null) {
+              break;
+            }
+            orgName = curOrgName;
+            ++innerLevel;
+            final int newEnd = fullName.indexOf('$', outerEnd + 1);
+            if (newEnd == -1) {
+              break;
+            }
+            outerEnd = newEnd;
+          }
+          // test rest of inner name for rename
+          StringBuilder sb = new StringBuilder();
+          if (orgName != null) {
+            sb.append(ClassUtil.getClassShortName(orgName));
+          }
+          _shortRenamer.renameInnerClass(fullName.substring(outerEnd + 1), 0, innerLevel, sb);
+          return sb.toString();
+        }
+      } else {
+        // in inner pass, name already in fullName so just get it
         final int innerIndex = fullName.lastIndexOf('$');
         if (innerIndex != -1) {
-          String mapName = _mappingReader.getClassMapName(fullName);
-          if (mapName != null) {
-            String orgInner = fullName.substring(innerIndex + 1);
-            return orgInner;
-          }
+          return fullName.substring(innerIndex + 1);
         }
       }
     }
-    if (orgName == null) {
-      return _fallbackRenamer.getNextClassName(fullName, shortName);
-    }
-    int i = orgName.lastIndexOf('/');
-    orgName = orgName.substring(i + 1);
-    return orgName;
+    return _shortRenamer.getNextClassName(fullName, shortName);
   }
 
   @Override
@@ -114,7 +153,7 @@ public class MappingRenamer implements IIdentifierRenamer {
       orgName = _mappingReader.getFieldOrgName(className, field, descriptor);
     }
     if (orgName == null) {
-      return _fallbackRenamer.getNextFieldName(className, field, descriptor);
+      return _shortRenamer.getNextFieldName(className, field, descriptor);
     }
     return orgName;
   }
@@ -126,7 +165,7 @@ public class MappingRenamer implements IIdentifierRenamer {
       orgName = _mappingReader.getMethodOrgName(className, method, descriptor);
     }
     if (orgName == null) {
-      return _fallbackRenamer.getNextMethodName(className, method, descriptor);
+      return _shortRenamer.getNextMethodName(className, method, descriptor);
     }
     return orgName;
   }

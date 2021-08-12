@@ -1,5 +1,6 @@
 package com.github.bianchui.ff.renamer;
 
+import com.github.bianchui.ff.utils.RenamerUtil;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
 
@@ -11,36 +12,30 @@ public class ShortRenamer implements IIdentifierRenamer {
     return oldSubName;
   }
 
-  private boolean isRenameAllPass(String shortName, String fullName) {
-    if (!fullName.endsWith(shortName)) {
-      return false;
+  public boolean isClassNeedRenamed(String shortName) {
+    // try any part of class name "Class$Inner$Inner_Inner" to be renamed
+    int nameStart = 0;
+    while (true) {
+      final int nameEnd = shortName.indexOf('$', nameStart);
+      final String subName = shortName.substring(nameStart, nameEnd == -1 ? shortName.length() : nameEnd);
+      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
+        return true;
+      }
+      if (nameEnd == -1) {
+        return false;
+      }
+      nameStart = nameEnd + 1;
     }
-    if (fullName.length() == shortName.length()) {
-      return true;
-    }
-    return fullName.charAt(fullName.length() - shortName.length() - 1) == '/';
   }
 
   @Override
   public boolean toBeRenamed(Type elementType, String className, String element, String descriptor) {
     if (elementType == Type.ELEMENT_CLASS) {
-      final boolean renameAllPass = isRenameAllPass(className, element);
+      final boolean renameAllPass = RenamerUtil.isRenameAllPass(className, element);
       if (renameAllPass) {
         // rename all class pass
 
-        // try any part of class name "Class$Inner$Inner_Inner" to be renamed
-        int nameStart = 0;
-        while (true) {
-          final int nameEnd = className.indexOf('$', nameStart);
-          final String subName = className.substring(nameStart, nameEnd == -1 ? className.length() : nameEnd);
-          if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
-            return true;
-          }
-          if (nameEnd == -1) {
-            return false;
-          }
-          nameStart = nameEnd + 1;
-        }
+        return isClassNeedRenamed(className);
       } else {
         // rename inner pass
 
@@ -51,40 +46,40 @@ public class ShortRenamer implements IIdentifierRenamer {
     return _helper.toBeRenamed(elementType, className, element, descriptor);
   }
 
+  public void renameInnerClass(String shortName, int nameStart, int innerLevel, StringBuilder sb) {
+    while (true) {
+      final int nameEnd = shortName.indexOf('$', nameStart);
+      final String subName = shortName.substring(nameStart, nameEnd == -1 ? shortName.length() : nameEnd);
+      if (innerLevel > 0) {
+        sb.append('$');
+      }
+      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
+        if (innerLevel > 0) {
+          for (int i = 0; i < innerLevel; ++i) {
+            sb.append("Inner_");
+          }
+        } else {
+          sb.append("Class_");
+        }
+      }
+      sb.append(subName);
+      ++innerLevel;
+      if (nameEnd == -1) {
+        break;
+      }
+      nameStart = nameEnd + 1;
+    }
+  }
+
   @Override
   public String getNextClassName(String fullName, String shortName) {
-    final boolean renameAllPass = isRenameAllPass(shortName, fullName);
+    final boolean renameAllPass = RenamerUtil.isRenameAllPass(shortName, fullName);
     if (renameAllPass) {
       // rename all class pass
 
       // try any part of class name "Class$Inner$Inner_Inner" to be renamed
-      int nameStart = 0;
-      int innerLevel = 0;
       StringBuilder sb = new StringBuilder();
-      while (true) {
-        final int nameEnd = shortName.indexOf('$', nameStart);
-        final String subName = shortName.substring(nameStart, nameEnd == -1 ? shortName.length() : nameEnd);
-        if (innerLevel > 0) {
-          sb.append('$');
-        }
-        if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
-          if (innerLevel > 0) {
-            for (int i = 0; i < innerLevel; ++i) {
-              sb.append("Inner_");
-            }
-          } else {
-            sb.append("Class_");
-          }
-          sb.append(subName);
-        } else {
-          sb.append(subName);
-        }
-        ++innerLevel;
-        if (nameEnd == -1) {
-          break;
-        }
-        nameStart = nameEnd + 1;
-      }
+      renameInnerClass(shortName, 0, 0, sb);
       return sb.toString();
     } else {
       // rename inner pass
