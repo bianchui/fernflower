@@ -98,11 +98,20 @@ public class ShortRenamer implements IIdentifierRenamer {
 
   @Override
   public String getNextFieldName(String className, String field, String descriptor) {
-    return _helper.getNextFieldName(className, field, descriptor);
+    return "_" + RenamerUtil.typeDescriptorShortName(descriptor) + "_" + field;
   }
 
   @Override
   public String getNextMethodName(String className, String method, String descriptor) {
-    return _helper.getNextMethodName(className, method, descriptor);
+    if (descriptor.equals("()V")) {
+      return "method_" + method;
+    }
+    if (descriptor.startsWith("()")) {
+      return "get_" + RenamerUtil.typeDescriptorShortName(descriptor.substring(2)) + "_" + method;
+    }
+    if (descriptor.endsWith(")V") && RenamerUtil.getMethodArgCount(descriptor) == 1) {
+      return "set_" + RenamerUtil.typeDescriptorShortName(descriptor.substring(1, descriptor.length() - 2)) + "_" + method;
+    }
+    return "method_" + method;
   }
 }
