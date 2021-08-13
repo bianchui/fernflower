@@ -20,7 +20,7 @@ public final class TextUtil {
   public static void writeQualifiedSuper(TextBuffer buf, String qualifier) {
     ClassesProcessor.ClassNode classNode = (ClassesProcessor.ClassNode)DecompilerContext.getProperty(DecompilerContext.CURRENT_CLASS_NODE);
     if (!qualifier.equals(classNode.classStruct.qualifiedName)) {
-      buf.append(DecompilerContext.getImportCollector().getShortName(ExprProcessor.buildJavaClassName(qualifier))).append('.');
+      buf.append(DecompilerContext.getImportCollector().getShortName(ExprProcessor.buildJavaClassName(qualifier, true))).append('.');
     }
     buf.append("super");
   }

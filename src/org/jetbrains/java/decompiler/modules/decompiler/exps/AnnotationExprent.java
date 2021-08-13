@@ -33,7 +33,7 @@ public class AnnotationExprent extends Exprent {
 
     buffer.appendIndent(indent);
     buffer.append('@');
-    buffer.append(DecompilerContext.getImportCollector().getShortName(ExprProcessor.buildJavaClassName(className)));
+    buffer.append(DecompilerContext.getImportCollector().getShortName(ExprProcessor.buildJavaClassName(className, true)));
 
     int type = getAnnotationType();
 

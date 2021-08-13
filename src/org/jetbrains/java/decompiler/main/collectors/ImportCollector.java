@@ -88,7 +88,7 @@ public class ImportCollector {
   public String getShortNameInClassContext(String classToName) {
     String shortName = getShortName(classToName);
     if (setFieldNames.contains(shortName)) {
-      return classToName;
+      return classToName.replace('$', '/');
     }
     else {
       return shortName;
@@ -121,13 +121,15 @@ public class ImportCollector {
       }
     }
     else {
-      fullName = fullName.replace('$', '.');
+      //fullName = fullName.replace('$', '.');
     }
+
+    int lastDot = fullName.lastIndexOf('.');
 
     String shortName = fullName;
     String packageName = "";
 
-    int lastDot = fullName.lastIndexOf('.');
+    fullName = fullName.replace('$', '.');
     if (lastDot >= 0) {
       shortName = fullName.substring(lastDot + 1);
       packageName = fullName.substring(0, lastDot);
@@ -150,9 +152,13 @@ public class ImportCollector {
       return result == null ? fullName : (packageName + "." + result);
     }
     else if (!mapSimpleNames.containsKey(shortName)) {
-      mapSimpleNames.put(shortName, packageName);
-      if (!imported) {
-        setNotImportedNames.add(shortName);
+      final int innerDot = shortName.indexOf('.');
+      final String keyName = innerDot == -1 ? shortName : shortName.substring(0, innerDot);
+      if (!mapSimpleNames.containsKey(keyName)) {
+        mapSimpleNames.put(keyName, packageName);
+        if (!imported) {
+          setNotImportedNames.add(keyName);
+        }
       }
     }
 
