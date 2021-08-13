@@ -3,7 +3,7 @@ package com.github.bianchui.ff.renamer;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 
 public class DebugRenamer implements IIdentifierRenamer {
-  IIdentifierRenamer _renamer = new MappingRenamer();
+  private final IIdentifierRenamer _renamer = new MappingGenRenamer();
 
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {

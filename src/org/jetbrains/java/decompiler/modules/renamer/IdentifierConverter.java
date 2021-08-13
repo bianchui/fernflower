@@ -2,6 +2,7 @@
 package org.jetbrains.java.decompiler.modules.renamer;
 
 import com.github.bianchui.ff.utils.MyLogger;
+import com.github.bianchui.ff.utils.NaturalOrderStringComparator;
 import org.jetbrains.java.decompiler.code.CodeConstants;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.struct.StructClass;
@@ -479,7 +480,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
     Comparator<ClassWrapperNode> comparator = new Comparator<ClassWrapperNode>() {
       @Override
       public int compare(ClassWrapperNode o1, ClassWrapperNode o2) {
-        return o1.getClassStruct().qualifiedName.compareTo(o2.getClassStruct().qualifiedName);
+        return NaturalOrderStringComparator.staticCompare(o1.getClassStruct().qualifiedName, o2.getClassStruct().qualifiedName);
       }
     };
 

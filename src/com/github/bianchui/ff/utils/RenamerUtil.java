@@ -1,11 +1,21 @@
 package com.github.bianchui.ff.utils;
 
+import com.github.bianchui.ff.pgmapping.JavaTypes;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
 
 import java.util.Locale;
 
 public class RenamerUtil {
+  public static String getClassPackage(String clsFullName) {
+    int index = clsFullName.lastIndexOf('/');
+    return index == -1 ? "" : clsFullName.substring(0, index);
+  }
+
+  public static String concatPackage(String parent, String subName) {
+    return parent == null || parent.length() == 0 ? subName : parent + '/' + subName;
+  }
+
   /**
    * class rename have 2 pass
    * first pass in renameAllClasses()
@@ -82,21 +92,8 @@ public class RenamerUtil {
     }
     int count = 0;
     int i = 1;
-    while (true) {
-      while (methodDescriptor.charAt(i) == '[') {
-        ++i;
-      }
-      if (methodDescriptor.charAt(i) == ')') {
-        break;
-      }
-      if (methodDescriptor.charAt(i) == 'L') {
-        i = methodDescriptor.indexOf(';', i + 1) + 1;
-        if (i == 0) {
-          break;
-        }
-      } else {
-        ++i;
-      }
+    while (methodDescriptor.charAt(i) != ')') {
+      i = JavaTypes.getDescriptorEnd(methodDescriptor, i);
       ++count;
     }
     return count;

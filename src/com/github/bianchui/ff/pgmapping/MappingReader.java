@@ -34,19 +34,19 @@ public class MappingReader {
     String _methodOrg; // "java/lang/String[] method(java/lang/String,int)"
     String _orgRetType; // "java/lang/String[]"
     String _orgArgs; // "java/lang/String,int"
-    String _orgSig; // "Ljava/lang/String;I"
+    String _orgDesc; // "Ljava/lang/String;I"
     String _orgName; // "method"
-    String _mapSig; // "(Ljava/lang/String;I)[Ljava/lang/String;" gen in processMapping
+    String _mapDesc; // "(Ljava/lang/String;I)[Ljava/lang/String;" gen in processMapping
     String _mapName; // "a"
 
     String orgFunction() {
-      return String.format("%s %s(%s); // %s", _orgRetType, _orgName, _orgArgs, _orgSig);
+      return String.format("%s %s(%s); // %s", _orgRetType, _orgName, _orgArgs, _orgDesc);
     }
     String mapFunction() {
-      return String.format("%s %s", _mapName, _mapSig);
+      return String.format("%s %s", _mapName, _mapDesc);
     }
     String mapKey() {
-      return _mapName + " " + _mapSig;
+      return _mapName + " " + _mapDesc;
     }
   }
   private static class ClassInfo {
@@ -147,7 +147,7 @@ public class MappingReader {
             final String args = orgStr.substring(iNameEnd + 1, iParamEnd);
             methodInfo._orgRetType = ret;
             methodInfo._orgArgs = args;
-            methodInfo._orgSig = JavaTypes.genMethodSignature(ret, args);
+            methodInfo._orgDesc = JavaTypes.genMethodDescriptor(ret, args);
             if (cls._methods == null) {
               cls._methods = new ArrayList<>();
             }
@@ -245,7 +245,7 @@ public class MappingReader {
 
   private void mapField(FieldInfo fieldInfo) {
     fieldInfo._mapType = mapType(fieldInfo._orgType);
-    fieldInfo._mapDesc = JavaTypes.mapJavaTypeToSignature(fieldInfo._mapType);
+    fieldInfo._mapDesc = JavaTypes.javaTypeToDescriptor(fieldInfo._mapType);
   }
 
   private void mapMethod(MethodInfo methodInfo) {
@@ -264,7 +264,7 @@ public class MappingReader {
       i = endI + 1;
     }
     String mapArgs = sb.toString();
-    methodInfo._mapSig = JavaTypes.genMethodSignature(mapRetType, mapArgs);
+    methodInfo._mapDesc = JavaTypes.genMethodDescriptor(mapRetType, mapArgs);
   }
 
   public void dump() {

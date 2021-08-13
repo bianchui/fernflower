@@ -22,14 +22,10 @@ public class MappingRenamer implements IIdentifierRenamer {
     }
   }
 
-  private static String concatPackage(String parent, String subName) {
-    return parent == null || parent.length() == 0 ? subName : parent + '/' + subName;
-  }
-
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
     if (_mappingReader != null) {
-      String orgPackage = _mappingReader.getOrgPackage(concatPackage(oldParentPackage, oldSubName));
+      String orgPackage = _mappingReader.getOrgPackage(RenamerUtil.concatPackage(oldParentPackage, oldSubName));
       if (orgPackage != null) {
         return orgPackage.substring(orgPackage.lastIndexOf('/') + 1);
       }

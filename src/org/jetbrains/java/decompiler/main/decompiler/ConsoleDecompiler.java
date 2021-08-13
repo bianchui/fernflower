@@ -1,6 +1,7 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.main.decompiler;
 
+import com.github.bianchui.ff.renamer.MappingGenRenamer;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.Fernflower;
 import org.jetbrains.java.decompiler.main.extern.IBytecodeProvider;
@@ -195,10 +196,18 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
     catch (IOException ex) {
       DecompilerContext.getLogger().writeMessage("Cannot create archive " + file, ex);
     }
+    if (MappingGenRenamer.getInstance() != null) {
+      String map = MappingGenRenamer.getInstance().genMap();
+      saveClassEntry(path, archiveName, null, "gen_mapping.txt", map);
+    }
   }
 
   @Override
   public void saveDirEntry(String path, String archiveName, String entryName) {
+    // [BC] not save directory
+    if (true) {
+      return;
+    }
     saveClassEntry(path, archiveName, null, entryName, null);
   }
 
