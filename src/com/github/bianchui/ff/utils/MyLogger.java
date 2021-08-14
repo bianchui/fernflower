@@ -9,6 +9,8 @@ public class MyLogger {
   private static final boolean DEBUG = false;
 
   public static final int CAT_RENAME = 1;
+  public static final int CAT_PROCESS = 2;
+  public static final boolean DumpClassTree = false;
 
   public static void log(String format, Object ... args) {
     if (!DEBUG) {
@@ -22,6 +24,13 @@ public class MyLogger {
       return;
     }
     System.out.printf(format, args);
+  }
+
+  public static void process_log(String format, Object ... args) {
+    if (!DEBUG) {
+      return;
+    }
+    log(CAT_PROCESS, format, args);
   }
 
   public static void rename_log(String format, Object ... args) {

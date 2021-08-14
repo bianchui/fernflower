@@ -59,7 +59,7 @@ public class ClassWrapper {
 
       try {
         if (mt.containsCode()) {
-          System.out.printf("---- Processing function %s %s\n", mt.getName(), mt.getDescriptor());
+          MyLogger.process_log("---- Processing function %s %s\n", mt.getName(), mt.getDescriptor());
           MyLogger.currentMethod = mt;
           if (maxSec == 0 || testMode) {
             root = MethodProcessorRunnable.codeToJava(classStruct, mt, md, varProc);

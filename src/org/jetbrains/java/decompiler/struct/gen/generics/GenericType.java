@@ -59,6 +59,7 @@ public class GenericType {
         case 'L':
           type = CodeConstants.TYPE_OBJECT;
           signature = signature.substring(index + 1, signature.length() - 1);
+          String fullName = null;
 
           while (true) {
             String cl = getNextClassSignature(signature);
@@ -71,8 +72,16 @@ public class GenericType {
               name = cl.substring(0, argStart);
               args = cl.substring(argStart + 1, cl.length() - 1);
             }
-            String newName = interceptor.getName(name);
+            if (fullName != null) {
+              fullName = fullName + '$' + name;
+            } else {
+              fullName = name;
+            }
+            String newName = interceptor.getName(fullName);
             if (newName != null) {
+              if (enclosingClasses.size() > 0) {
+                newName = newName.substring(newName.lastIndexOf('$') + 1);
+              }
               name = newName;
             }
 

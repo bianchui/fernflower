@@ -477,6 +477,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
     this.rootClasses = rootClasses;
     this.rootInterfaces = rootInterfaces;
 
+    if (!MyLogger.DumpClassTree) {
+      return;
+    }
     Comparator<ClassWrapperNode> comparator = new Comparator<ClassWrapperNode>() {
       @Override
       public int compare(ClassWrapperNode o1, ClassWrapperNode o2) {
