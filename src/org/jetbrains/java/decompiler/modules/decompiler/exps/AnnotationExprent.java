@@ -6,6 +6,8 @@ package org.jetbrains.java.decompiler.modules.decompiler.exps;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.collectors.BytecodeMappingTracer;
 import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
+import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
+import org.jetbrains.java.decompiler.struct.gen.VarType;
 import org.jetbrains.java.decompiler.util.InterpreterUtil;
 import org.jetbrains.java.decompiler.util.TextBuffer;
 
@@ -22,6 +24,23 @@ public class AnnotationExprent extends Exprent {
 
   public AnnotationExprent(String className, List<String> parNames, List<? extends Exprent> parValues) {
     super(EXPRENT_ANNOTATION);
+    PoolInterceptor interceptor = DecompilerContext.getPoolInterceptor();
+    String newName = interceptor.getName(className);
+    if (parNames.size() != 0) {
+      for (int i = 0; i < parNames.size(); ++i) {
+        String parName = parNames.get(i);
+        Exprent value = parValues.get(i);
+        VarType type = value.getExprType();
+        String newFun = interceptor.getName(className + " " + parName + " ()" + type.toString());
+        if (newFun != null) {
+          parName = newFun.split(" ")[1];
+          parNames.set(i, parName);
+        }
+      }
+    }
+    if (newName != null) {
+      className = newName;
+    }
     this.className = className;
     this.parNames = parNames;
     this.parValues = parValues;
