@@ -140,7 +140,7 @@ public class MappingGen {
       private final NaturalOrderStringComparator _comparator = new NaturalOrderStringComparator();
       @Override
       public int compare(ClassInfo o1, ClassInfo o2) {
-        return NaturalOrderStringComparator.staticCompare(o1._orgName, o2._orgName);
+        return NaturalOrderStringComparator.staticCompare(o1._mapName, o2._mapName);
       }
     });
     for (ClassInfo classInfo : classes) {
