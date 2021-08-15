@@ -3,13 +3,18 @@ package com.github.bianchui.ff.renamer;
 import com.github.bianchui.ff.pgmapping.MappingReader;
 import com.github.bianchui.ff.utils.ClassUtil;
 import com.github.bianchui.ff.utils.RenamerUtil;
+import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
+import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MappingRenamer implements IIdentifierRenamer {
   private final ShortRenamer _shortRenamer;
   private final MappingReader _mappingReader;
+  private boolean _redirectPackage = false;
 
   public MappingRenamer() {
     _shortRenamer = new ShortRenamer();
@@ -22,8 +27,17 @@ public class MappingRenamer implements IIdentifierRenamer {
     }
   }
 
+  private void redirectPackage() {
+    PoolInterceptor interceptor = DecompilerContext.getPoolInterceptor();
+    interceptor.redirectPackage("android/support/annotation", "androidx/annotation");
+  }
+
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
+    if (!_redirectPackage) {
+      redirectPackage();
+      _redirectPackage = true;
+    }
     if (_mappingReader != null) {
       String orgPackage = _mappingReader.getOrgPackage(RenamerUtil.concatPackage(oldParentPackage, oldSubName));
       if (orgPackage != null) {
