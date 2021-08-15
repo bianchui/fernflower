@@ -3,6 +3,7 @@ package org.jetbrains.java.decompiler.modules.renamer;
 
 import com.github.bianchui.ff.utils.MyLogger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,12 +11,22 @@ import java.util.Map;
 public class PoolInterceptor {
   private final Map<String, String> mapOldToNewNames = new HashMap<>();
   private final Map<String, String> mapNewToOldNames = new HashMap<>();
-  private final Map<String, String> mapOldToNewPkgs = new HashMap<>();
-  private final Map<String, String> mapNewToOldPkgs = new HashMap<>();
+  private static class PkgNameMaps {
+    final String oldName;
+    final String newName;
+    PkgNameMaps(String oldName, String newName) {
+      this.oldName = oldName;
+      this.newName = newName;
+    }
+  }
+  private final List<PkgNameMaps> mapOldToNewPkgs = new ArrayList<>();
 
   public void redirectPackage(String oldPkg, String newPkg) {
-    mapOldToNewPkgs.put(oldPkg, newPkg);
-    mapNewToOldPkgs.put(newPkg, oldPkg);
+    mapOldToNewPkgs.add(new PkgNameMaps(oldPkg, newPkg));
+  }
+
+  public void renameClass(String oldName, String newName) {
+    mapOldToNewPkgs.add(new PkgNameMaps(oldName, newName));
   }
 
   public void addName(String oldName, String newName) {
@@ -24,9 +35,9 @@ public class PoolInterceptor {
   }
 
   public String getName(String oldName) {
-    for (Map.Entry<String, String> entry : mapOldToNewPkgs.entrySet()) {
-      if (oldName.startsWith(entry.getKey())) {
-        return entry.getValue() + oldName.substring(entry.getKey().length());
+    for (PkgNameMaps entry : mapOldToNewPkgs) {
+      if (oldName.startsWith(entry.oldName)) {
+        return entry.newName + oldName.substring(entry.oldName.length());
       }
     }
     String ret = mapOldToNewNames.get(oldName);

@@ -29,10 +29,12 @@ public class MappingRenamer implements IIdentifierRenamer {
 
   private void redirectPackage() {
     PoolInterceptor interceptor = DecompilerContext.getPoolInterceptor();
+    interceptor.renameClass("android/support/v7/widget/LinearLayoutManager", "androidx/recyclerview/widget/LinearLayoutManager");
+    interceptor.renameClass("android/support/v7/widget/RecyclerView", "androidx/recyclerview/widget/RecyclerView");
+    interceptor.renameClass("android/support/v4/view/ViewPager", "androidx/viewpager/widget/ViewPager");
     interceptor.redirectPackage("android/support/annotation", "androidx/annotation");
-    interceptor.redirectPackage("android/support/v7/app", "androidx/appcompat/app");
-    interceptor.redirectPackage("android/support/v7/widget", "androidx/appcompat/widget");
-    interceptor.redirectPackage("android/support/v4/content", "androidx/core/content");
+    interceptor.redirectPackage("android/support/v7", "androidx/appcompat");
+    interceptor.redirectPackage("android/support/v4", "androidx/core");
   }
 
   @Override
