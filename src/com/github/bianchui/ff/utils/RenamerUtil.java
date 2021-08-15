@@ -40,9 +40,9 @@ public class RenamerUtil {
     return newName != null ? newName : name;
   }
 
-  public static String typeDescriptorShortName(String typeDescriptor) {
+  public static String typeDescriptorShortName(String typeDescriptor, int startIndex) {
     StringBuilder sb = new StringBuilder();
-    int i = 0;
+    int i = startIndex;
     while (typeDescriptor.charAt(i) == '[') {
       sb.append("arr_");
       ++i;
@@ -81,6 +81,67 @@ public class RenamerUtil {
         sb.append(name.substring(nameStart, nameStart + 1).toLowerCase(Locale.US));
         sb.append(name.substring(nameStart + 1));
         break;
+    }
+    return sb.toString();
+  }
+
+  public static void typeDescriptorVeryShortName(String typeDescriptor, int startIndex, StringBuilder sb) {
+    int i = startIndex;
+    while (typeDescriptor.charAt(i) == '[') {
+      sb.append("A");
+      ++i;
+    }
+    switch (typeDescriptor.charAt(i)) {
+      case 'V':
+        sb.append("V");
+        break;
+      case 'C':
+        sb.append("C");
+        break;
+      case 'B':
+        sb.append("B");
+        break;
+      case 'Z':
+        sb.append("Z");
+        break;
+      case 'S':
+        sb.append("S");
+        break;
+      case 'I':
+        sb.append("I");
+        break;
+      case 'J':
+        sb.append("J");
+        break;
+      case 'F':
+        sb.append("F");
+        break;
+      case 'D':
+        sb.append("D");
+        break;
+      case 'L':
+        String name = getRenamedClassName(typeDescriptor.substring(i + 1, typeDescriptor.indexOf(';', i + 1)));
+        int nameStart = name.lastIndexOf('/') + 1;
+        String nameShort = name.substring(nameStart);
+        if (nameShort.startsWith("Class_") && nameShort.length() != 6) {
+          nameShort = nameShort.substring(6);
+        }
+        sb.append(nameShort.substring(0, 1).toUpperCase(Locale.US));
+        sb.append(nameShort.substring(1));
+        break;
+    }
+  }
+
+  public static String methodDescriptorVeryShortName(String methodDescriptor) {
+    StringBuilder sb = new StringBuilder();
+    if (methodDescriptor.charAt(0) == '(') {
+      int count = 0;
+      int i = 1;
+      while (methodDescriptor.charAt(i) != ')') {
+        typeDescriptorVeryShortName(methodDescriptor, i, sb);
+        i = JavaTypes.getDescriptorEnd(methodDescriptor, i);
+        ++count;
+      }
     }
     return sb.toString();
   }
