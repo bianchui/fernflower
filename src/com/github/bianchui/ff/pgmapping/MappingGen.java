@@ -137,10 +137,15 @@ public class MappingGen {
     StringBuilder sb = new StringBuilder();
     ArrayList<ClassInfo> classes = new ArrayList<>(_mapNameClasses.values());
     classes.sort(new Comparator<ClassInfo>() {
-      private final NaturalOrderStringComparator _comparator = new NaturalOrderStringComparator();
       @Override
       public int compare(ClassInfo o1, ClassInfo o2) {
-        return NaturalOrderStringComparator.staticCompare(o1._mapName, o2._mapName);
+        final String mapPkg1 = RenamerUtil.getClassPackage(o1._mapName);
+        final String mapPkg2 = RenamerUtil.getClassPackage(o2._mapName);
+        int ret = NaturalOrderStringComparator.staticCompare(mapPkg1, mapPkg2);
+        if (ret == 0) {
+          ret = NaturalOrderStringComparator.staticCompare(o1._mapName, o2._mapName);
+        }
+        return ret;
       }
     });
     for (ClassInfo classInfo : classes) {
