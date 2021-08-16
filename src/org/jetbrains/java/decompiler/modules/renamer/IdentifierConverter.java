@@ -47,6 +47,10 @@ public class IdentifierConverter implements NewClassNameBuilder {
       System.out.printf("----- rename [reload]\n");
       context.reloadContext();
       System.out.printf("----- rename [end]\n");
+
+      // [BC] build again for @Override
+      buildInheritanceTree();
+      markFunctionOverride();
     }
     catch (IOException ex) {
       throw new RuntimeException("Renaming failed!");
@@ -290,6 +294,8 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
       boolean isPrivate = mt.hasModifier(CodeConstants.ACC_PRIVATE);
 
+      final boolean hasKey = names.containsKey(key);
+
       String name = mt.getName();
       if (!cl.isOwn() || mt.hasModifier(CodeConstants.ACC_NATIVE)) {
         // external and native methods must not be renamed
@@ -297,7 +303,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
           names.put(key, name);
         }
       }
-      else if (!names.containsKey(key) && helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
+      else if (!hasKey && helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
         if (isPrivate || !names.containsKey(key)) {
           final String paramsDescriptor = getParamsDescriptor(mt.getDescriptor());
           do {
@@ -476,7 +482,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
     this.rootClasses = rootClasses;
     this.rootInterfaces = rootInterfaces;
+  }
 
+  private void dumpClassTree() {
     if (!MyLogger.DumpClassTree) {
       return;
     }
@@ -490,15 +498,15 @@ public class IdentifierConverter implements NewClassNameBuilder {
     System.out.println("----------------------------------------");
     System.out.println("---- Interface tree");
     System.out.println("----------------------------------------");
-    dumpClssTree(rootInterfaces, "", comparator);
+    dumpClassTree(rootInterfaces, "", comparator);
     System.out.println("----------------------------------------");
     System.out.println("---- Class tree");
     System.out.println("----------------------------------------");
-    dumpClssTree(rootClasses, "", comparator);
+    dumpClassTree(rootClasses, "", comparator);
     System.out.println("----------------------------------------");
   }
 
-  private static void dumpClssTree(List<ClassWrapperNode> tree, String indent, Comparator<ClassWrapperNode> comparator) {
+  private static void dumpClassTree(List<ClassWrapperNode> tree, String indent, Comparator<ClassWrapperNode> comparator) {
     if (tree == null) {
       return;
     }
@@ -508,7 +516,74 @@ public class IdentifierConverter implements NewClassNameBuilder {
     }
     for (ClassWrapperNode cls : tree) {
       System.out.printf("%s+ %s\n", indent, cls.getClassStruct().qualifiedName);
-      dumpClssTree(cls.getSubclasses(), indent + "  ", comparator);
+      dumpClassTree(cls.getSubclasses(), indent + "  ", comparator);
     }
   }
+
+  private void markFunctionOverride() {
+    Map<String, Set<String>> classNameMaps = new HashMap<>();
+    markFunctionOverride(getReversePostOrderListIterative(rootInterfaces), classNameMaps);
+    markFunctionOverride(getReversePostOrderListIterative(rootClasses), classNameMaps);
+  }
+
+  private void markFunctionOverride(List<ClassWrapperNode> classes, Map<String, Set<String>> classNameMaps) {
+    Map<String, Map<String, String>> interfaceNameMaps = new HashMap<>();
+
+    for (ClassWrapperNode node : classes) {
+      markFunctionOverride(node.getClassStruct(), classNameMaps);
+    }
+  }
+
+  private Set<String> markFunctionOverride(StructClass cl, Map<String, Set<String>> classNameMaps) {
+    Set<String> names = classNameMaps.get(cl.qualifiedName);
+    if (names != null) {
+      return names;
+    }
+    names = new HashSet<>();
+    classNameMaps.put(cl.qualifiedName, names);
+
+    // merge information on super class
+    if (cl.superClass != null) {
+      Set<String> superNames = classNameMaps.get(cl.superClass.getString());
+      if (superNames != null) {
+        names.addAll(superNames);
+      } else {
+        System.out.printf("");
+      }
+    }
+
+    // merge information on interfaces
+    for (String ifName : cl.getInterfaceNames()) {
+      Set<String> superNames = classNameMaps.get(ifName);
+      if (superNames != null) {
+        names.addAll(superNames);
+      } else {
+        StructClass clintr = context.getClass(ifName);
+        if (clintr != null) {
+          superNames = markFunctionOverride(clintr, classNameMaps);
+          names.addAll(superNames);
+        }
+      }
+    }
+
+    // marking
+    VBStyleCollection<StructMethod, String> methods = cl.getMethods();
+    for (int i = 0; i < methods.size(); i++) {
+      StructMethod mt = methods.get(i);
+      String key = methods.getKey(i);
+
+      boolean isPrivate = mt.hasModifier(CodeConstants.ACC_PRIVATE);
+
+      if (!isPrivate) {
+        final boolean hasKey = names.contains(key);
+        if (hasKey) {
+          mt.set_override(true);
+        } else {
+          names.add(key);
+        }
+      }
+    }
+    return names;
+  }
+
 }

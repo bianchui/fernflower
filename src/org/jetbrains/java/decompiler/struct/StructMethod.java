@@ -55,6 +55,7 @@ public class StructMethod extends StructMember {
   private final int codeFullLength;
   private InstructionSequence seq = null;
   private boolean expanded = false;
+  private boolean _override = false;
 
   private StructMethod(int accessFlags,
                        Map<String, StructGeneralAttribute> attributes,
@@ -365,6 +366,20 @@ public class StructMethod extends StructMember {
 
   public StructLocalVariableTableAttribute getLocalVariableAttr() {
     return getAttribute(StructGeneralAttribute.ATTRIBUTE_LOCAL_VARIABLE_TABLE);
+  }
+
+  public void set_override(boolean override) {
+    if (hasModifier(CodeConstants.ACC_STATIC)) {
+      return;
+    }
+    if (name.equals("<init>") || name.equals("<cinit>")) {
+      return;
+    }
+    _override = override;
+  }
+
+  public boolean is_override() {
+    return _override;
   }
 
   @Override

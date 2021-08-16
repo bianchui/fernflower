@@ -1145,6 +1145,15 @@ public class ClassWriter {
       }
     }
 
+    // [BC] @Override
+    if (mb instanceof StructMethod) {
+      if (((StructMethod)mb).is_override()) {
+        buffer.appendIndent(indent);
+        buffer.append("@Override");
+        buffer.appendLineSeparator();
+      }
+    }
+
     appendTypeAnnotations(buffer, indent, mb, targetType, -1, filter);
   }
 

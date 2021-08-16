@@ -35,24 +35,29 @@ public class PoolInterceptor {
   }
 
   public String getName(String oldName) {
-    for (PkgNameMaps entry : mapOldToNewPkgs) {
-      if (oldName.startsWith(entry.oldName)) {
-        return entry.newName + oldName.substring(entry.oldName.length());
+    final boolean isClass = oldName.indexOf(' ') == -1;
+    if (mapOldToNewPkgs.size() > 0 && isClass) {
+      for (PkgNameMaps entry : mapOldToNewPkgs) {
+        if (oldName.startsWith(entry.oldName)) {
+          return entry.newName + oldName.substring(entry.oldName.length());
+        }
       }
+    }
+    if (mapOldToNewNames.isEmpty()) {
+      return null;
     }
     String ret = mapOldToNewNames.get(oldName);
     if (!mapOldToNewNames.isEmpty()) {
       MyLogger.log("Interceptor.getName(%s) -> %s\n", oldName, ret);
     }
-    if (ret == null) {
+    if (ret == null && !isClass) {
       String[] strings = oldName.split(" ");
       if (strings.length == 3) {
         strings[0] = getOldName(strings[0]);
         if (strings[0] != null) {
-          oldName = strings[0] + " " + strings[1] + " " + strings[2];
-          ret = mapOldToNewNames.get(oldName);
+          ret = mapOldToNewNames.get(strings[0] + " " + strings[1] + " " + strings[2]);
           if (!mapOldToNewNames.isEmpty()) {
-            MyLogger.log("  Interceptor.getName(%s) -> %s\n", oldName, ret);
+            MyLogger.log("  Interceptor.getName(%s) => %s\n", oldName, ret);
           }
         }
       }
