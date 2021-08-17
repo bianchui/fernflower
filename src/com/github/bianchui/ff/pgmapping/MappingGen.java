@@ -1,5 +1,6 @@
 package com.github.bianchui.ff.pgmapping;
 
+import com.github.bianchui.ff.utils.JavaTypes;
 import com.github.bianchui.ff.utils.NaturalOrderStringComparator;
 import com.github.bianchui.ff.utils.RenamerUtil;
 

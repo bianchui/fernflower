@@ -372,7 +372,7 @@ public class StructMethod extends StructMember {
     if (hasModifier(CodeConstants.ACC_STATIC)) {
       return;
     }
-    if (name.equals("<init>") || name.equals("<cinit>")) {
+    if (name.equals(INIT_NAME) || name.equals(CLINIT_NAME)) {
       return;
     }
     _override = override;

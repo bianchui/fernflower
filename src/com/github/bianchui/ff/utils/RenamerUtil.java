@@ -1,6 +1,5 @@
 package com.github.bianchui.ff.utils;
 
-import com.github.bianchui.ff.pgmapping.JavaTypes;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
 
@@ -144,19 +143,5 @@ public class RenamerUtil {
       }
     }
     return sb.toString();
-  }
-
-  public static int getMethodArgCount(String methodDescriptor) {
-    // (II)V
-    if (methodDescriptor.charAt(0) != '(') {
-      return 0;
-    }
-    int count = 0;
-    int i = 1;
-    while (methodDescriptor.charAt(i) != ')') {
-      i = JavaTypes.getDescriptorEnd(methodDescriptor, i);
-      ++count;
-    }
-    return count;
   }
 }

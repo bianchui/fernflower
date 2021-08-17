@@ -71,6 +71,20 @@ public class MappingGenRenamer implements IIdentifierRenamer {
     return newName;
   }
 
+  public void recordRename(Type elementType, String className, String element, String newName, String descriptor) {
+    switch (elementType) {
+      case ELEMENT_CLASS:
+        _mappingGen.addMapClass(className, element);
+        break;
+      case ELEMENT_FIELD:
+        _mappingGen.addMapField(className, newName, element, descriptor);
+        break;
+      case ELEMENT_METHOD:
+        _mappingGen.addMapMethod(className, newName, element, descriptor);
+        break;
+    }
+  }
+
   public String genMap() {
     return _mappingGen.genMap();
   }

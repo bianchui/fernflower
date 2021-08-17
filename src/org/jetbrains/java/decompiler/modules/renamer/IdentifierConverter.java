@@ -1,6 +1,9 @@
 // Copyright 2000-2017 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.java.decompiler.modules.renamer;
 
+import com.github.bianchui.ff.generic.GenericClassInfo;
+import com.github.bianchui.ff.generic.GenericContext;
+import com.github.bianchui.ff.renamer.MappingGenRenamer;
 import com.github.bianchui.ff.utils.MyLogger;
 import com.github.bianchui.ff.utils.NaturalOrderStringComparator;
 import org.jetbrains.java.decompiler.code.CodeConstants;
@@ -24,9 +27,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
   private List<ClassWrapperNode> rootClasses = new ArrayList<>();
   private List<ClassWrapperNode> rootInterfaces = new ArrayList<>();
   private Map<String, Map<String, String>> interfaceNameMaps = new HashMap<>();
-
   private Map<String, String> _renamePackages = new HashMap<>();
   private Set<String> _notRenamePackages = new HashSet<>();
+  private GenericContext _genericContext;
 
   public IdentifierConverter(StructContext context, IIdentifierRenamer helper, PoolInterceptor interceptor) {
     this.context = context;
@@ -69,26 +72,23 @@ public class IdentifierConverter implements NewClassNameBuilder {
       if (cl.superClass != null) {
         Map<String, String> mapClass = classNameMaps.get(cl.superClass.getString());
         if (mapClass != null) {
+          mapClass = fixSuperMembers(cl, cl.superClass.getString(), mapClass);
           names.putAll(mapClass);
-          fixSuperMembers(cl, cl.superClass.getString(), mapClass);
         }
       }
 
       // merge information on interfaces
       for (String ifName : cl.getInterfaceNames()) {
         Map<String, String> mapInt = interfaceNameMaps.get(ifName);
-        if (mapInt != null) {
-          names.putAll(mapInt);
-        }
-        else {
+        if (mapInt == null) {
           StructClass clintr = context.getClass(ifName);
           if (clintr != null) {
             mapInt = processExternalInterface(clintr);
-            names.putAll(mapInt);
           }
         }
         if (mapInt != null) {
-          fixSuperMembers(cl, ifName, mapInt);
+          mapInt = fixSuperMembers(cl, ifName, mapInt);
+          names.putAll(mapInt);
         }
       }
 
@@ -105,18 +105,15 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
     for (String ifName : cl.getInterfaceNames()) {
       Map<String, String> mapInt = interfaceNameMaps.get(ifName);
-      if (mapInt != null) {
-        names.putAll(mapInt);
-      }
-      else {
+      if (mapInt == null) {
         StructClass clintr = context.getClass(ifName);
         if (clintr != null) {
           mapInt = processExternalInterface(clintr);
-          names.putAll(mapInt);
         }
       }
       if (mapInt != null) {
-        fixSuperMembers(cl, ifName, mapInt);
+        mapInt = fixSuperMembers(cl, ifName, mapInt);
+        names.putAll(mapInt);
       }
     }
 
@@ -139,8 +136,8 @@ public class IdentifierConverter implements NewClassNameBuilder {
       for (String ifName : cl.getInterfaceNames()) {
         Map<String, String> mapInt = interfaceNameMaps.get(ifName);
         if (mapInt != null) {
+          mapInt = fixSuperMembers(cl, ifName, mapInt);
           names.putAll(mapInt);
-          fixSuperMembers(cl, ifName, mapInt);
         }
       }
 
@@ -153,11 +150,15 @@ public class IdentifierConverter implements NewClassNameBuilder {
   }
 
   // [BC]
-  private void fixSuperMembers(StructClass thisCls, String superClsName, Map<String, String> names) {
+  private Map<String, String> fixSuperMembers(StructClass thisCls, String superClsName, Map<String, String> names) {
     String newClsName = interceptor.getName(thisCls.qualifiedName);
     if (newClsName == null) {
       newClsName = thisCls.qualifiedName;
     }
+
+    Map<String, String> addNamesMap = null;
+
+    GenericClassInfo genericClassInfo = _genericContext.getInfo(thisCls.qualifiedName);
 
     for (Map.Entry<String, String> entry : names.entrySet()) {
       final String key = entry.getKey();
@@ -166,15 +167,36 @@ public class IdentifierConverter implements NewClassNameBuilder {
         if (!keys[0].equals(entry.getValue())) {
           final String superNewName = interceptor.getName(superClsName + " " + key);
           String[] newNames = superNewName.split(" ");
-          final String oldName = thisCls.qualifiedName + " " + key;
-          final String newName = newClsName + " " + newNames[1] + " " + newNames[2];
+          String oldName = thisCls.qualifiedName + " " + key;
+          String newName = newClsName + " " + newNames[1] + " " + newNames[2];
           if (interceptor.getName(oldName) == null) {
             MyLogger.rename_log("Fix name map %s -> %s\n", oldName, newName);
           }
           interceptor.addName(oldName, newName);
+          final GenericClassInfo.AppliedFunctionInfo functionInfo = genericClassInfo != null ? genericClassInfo.appliedFunctions.get(key) : null;
+          if (functionInfo != null && !functionInfo.orgMethodDescriptor.equals(functionInfo.newMethodDescriptor)) {
+            keys[1] = functionInfo.newMethodDescriptor;
+            newNames[2] = buildNewDescriptor(false, functionInfo.newMethodDescriptor);
+            oldName = thisCls.qualifiedName + " " + keys[0] + " " + keys[1];
+            newName = newClsName + " " + newNames[1] + " " + newNames[2];
+            MyLogger.rename_log("  Fixed by generic %s -> %s\n", oldName, newName);
+            if (addNamesMap == null) {
+              addNamesMap = new HashMap<>();
+            }
+            addNamesMap.put(key, keys[0] + " " + functionInfo.newMethodDescriptor);
+            interceptor.addName(oldName, newName);
+          }
         }
       }
     }
+
+    if (addNamesMap != null) {
+      names = new HashMap<>(names);
+      for (Map.Entry<String, String> entry : addNamesMap.entrySet()) {
+        names.put(entry.getValue(), names.get(entry.getKey()));
+      }
+    }
+    return names;
   }
 
   private void renameAllClasses() {
@@ -303,7 +325,12 @@ public class IdentifierConverter implements NewClassNameBuilder {
           names.put(key, name);
         }
       }
-      else if (!hasKey && helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
+      else if (hasKey) {
+        if (MappingGenRenamer.getInstance() != null) {
+          MappingGenRenamer.getInstance().recordRename(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, names.get(key), mt.getDescriptor());
+        }
+      }
+      else if (helper.toBeRenamed(IIdentifierRenamer.Type.ELEMENT_METHOD, classOldFullName, name, mt.getDescriptor())) {
         if (isPrivate || !names.containsKey(key)) {
           final String paramsDescriptor = getParamsDescriptor(mt.getDescriptor());
           do {
@@ -416,6 +443,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
   private void buildInheritanceTree() {
     Map<String, ClassWrapperNode> nodes = new HashMap<>();
     Map<String, StructClass> classes = context.getClasses();
+    _genericContext = new GenericContext();
 
     List<ClassWrapperNode> rootClasses = new ArrayList<>();
     List<ClassWrapperNode> rootInterfaces = new ArrayList<>();
@@ -424,6 +452,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
       if (!cl.isOwn()) {
         continue;
       }
+      _genericContext.loadGenericClassInfo(cl);
 
       LinkedList<StructClass> stack = new LinkedList<>();
       LinkedList<ClassWrapperNode> stackSubNodes = new LinkedList<>();
@@ -440,6 +469,7 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
         if (isNewNode) {
           nodes.put(clStr.qualifiedName, node = new ClassWrapperNode(clStr));
+
         }
 
         if (child != null) {
@@ -527,8 +557,6 @@ public class IdentifierConverter implements NewClassNameBuilder {
   }
 
   private void markFunctionOverride(List<ClassWrapperNode> classes, Map<String, Set<String>> classNameMaps) {
-    Map<String, Map<String, String>> interfaceNameMaps = new HashMap<>();
-
     for (ClassWrapperNode node : classes) {
       markFunctionOverride(node.getClassStruct(), classNameMaps);
     }
@@ -547,24 +575,24 @@ public class IdentifierConverter implements NewClassNameBuilder {
       Set<String> superNames = classNameMaps.get(cl.superClass.getString());
       if (superNames != null) {
         names.addAll(superNames);
-      } else {
-        System.out.printf("");
       }
     }
 
     // merge information on interfaces
     for (String ifName : cl.getInterfaceNames()) {
       Set<String> superNames = classNameMaps.get(ifName);
-      if (superNames != null) {
-        names.addAll(superNames);
-      } else {
+      if (superNames == null) {
         StructClass clintr = context.getClass(ifName);
         if (clintr != null) {
           superNames = markFunctionOverride(clintr, classNameMaps);
-          names.addAll(superNames);
         }
       }
+      if (superNames != null) {
+        names.addAll(superNames);
+      }
     }
+
+    fixSuperGenericFunctionsForOverride(cl, names);
 
     // marking
     VBStyleCollection<StructMethod, String> methods = cl.getMethods();
@@ -582,6 +610,35 @@ public class IdentifierConverter implements NewClassNameBuilder {
           names.add(key);
         }
       }
+    }
+    return names;
+  }
+
+  private Set<String> fixSuperGenericFunctionsForOverride(StructClass thisCls, Set<String> names) {
+    GenericClassInfo genericClassInfo = _genericContext.getInfo(thisCls.qualifiedName);
+    if (genericClassInfo == null) {
+      return names;
+    }
+    if (genericClassInfo.appliedFunctions.isEmpty()) {
+      return names;
+    }
+
+    Set<String> addNames = null;
+    for (final String key : names) {
+      final String[] keys = key.split(" ");
+      if (keys.length == 2) {
+        final GenericClassInfo.AppliedFunctionInfo functionInfo = genericClassInfo.appliedFunctions.get(key);
+        if (functionInfo != null && !functionInfo.orgMethodDescriptor.equals(functionInfo.newMethodDescriptor)) {
+          if (addNames == null) {
+            addNames = new HashSet<>();
+          }
+          addNames.add(keys[0] + " " + functionInfo.newMethodDescriptor);
+        }
+      }
+    }
+
+    if (addNames != null) {
+      names.addAll(addNames);
     }
     return names;
   }

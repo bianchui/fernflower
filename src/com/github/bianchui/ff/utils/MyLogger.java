@@ -8,8 +8,9 @@ public class MyLogger {
   public static StructMethod currentMethod;
   private static final boolean DEBUG = false;
 
-  public static final int CAT_RENAME = 1;
-  public static final int CAT_PROCESS = 2;
+  public static final boolean CAT_RENAME = false;
+  public static final boolean CAT_PROCESS = false;
+  public static final boolean CAT_GENERIC = false;
   public static final boolean DumpClassTree = false;
 
   public static void log(String format, Object ... args) {
@@ -19,8 +20,8 @@ public class MyLogger {
     System.out.printf(format, args);
   }
 
-  public static void log(int cat, String format, Object ... args) {
-    if (!DEBUG) {
+  public static void log(boolean log, String format, Object ... args) {
+    if (!DEBUG && !log) {
       return;
     }
     System.out.printf(format, args);
@@ -35,6 +36,9 @@ public class MyLogger {
 
   public static void rename_log(String format, Object ... args) {
     log(CAT_RENAME, format, args);
+  }
+  public static void generic_log(String format, Object ... args) {
+    log(CAT_GENERIC, format, args);
   }
 
   public static void decompile_error(String format, Object ... args) {

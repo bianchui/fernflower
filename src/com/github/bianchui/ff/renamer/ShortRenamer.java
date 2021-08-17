@@ -1,5 +1,6 @@
 package com.github.bianchui.ff.renamer;
 
+import com.github.bianchui.ff.utils.JavaTypes;
 import com.github.bianchui.ff.utils.RenamerUtil;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
@@ -109,7 +110,7 @@ public class ShortRenamer implements IIdentifierRenamer {
     if (descriptor.startsWith("()")) {
       return "get_" + RenamerUtil.typeDescriptorShortName(descriptor, 2) + "_" + method;
     }
-    int count = RenamerUtil.getMethodArgCount(descriptor);
+    int count = JavaTypes.getMethodArgCount(descriptor);
     if (descriptor.endsWith(")V") && count == 1) {
       return "set_" + RenamerUtil.typeDescriptorShortName(descriptor, 1) + "_" + method;
     }

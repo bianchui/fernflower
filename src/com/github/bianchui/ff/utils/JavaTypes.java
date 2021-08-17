@@ -1,4 +1,4 @@
-package com.github.bianchui.ff.pgmapping;
+package com.github.bianchui.ff.utils;
 
 public final class JavaTypes {
   public static String javaTypeToDescriptor(String type) {
@@ -119,5 +119,19 @@ public final class JavaTypes {
       ++i;
     }
     return i;
+  }
+
+  public static int getMethodArgCount(String methodDescriptor) {
+    // (II)V
+    if (methodDescriptor.charAt(0) != '(') {
+      return 0;
+    }
+    int count = 0;
+    int i = 1;
+    while (methodDescriptor.charAt(i) != ')') {
+      i = JavaTypes.getDescriptorEnd(methodDescriptor, i);
+      ++count;
+    }
+    return count;
   }
 }
