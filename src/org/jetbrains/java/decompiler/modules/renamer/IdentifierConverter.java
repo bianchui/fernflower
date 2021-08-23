@@ -4,6 +4,7 @@ package org.jetbrains.java.decompiler.modules.renamer;
 import com.github.bianchui.ff.generic.GenericClassInfo;
 import com.github.bianchui.ff.generic.GenericContext;
 import com.github.bianchui.ff.renamer.MappingGenRenamer;
+import com.github.bianchui.ff.renamer.MappingRenamer;
 import com.github.bianchui.ff.utils.MyLogger;
 import com.github.bianchui.ff.utils.NaturalOrderStringComparator;
 import org.jetbrains.java.decompiler.code.CodeConstants;
@@ -39,6 +40,9 @@ public class IdentifierConverter implements NewClassNameBuilder {
 
   public void rename() {
     try {
+      if (MappingRenamer.getInstance() != null) {
+        MappingRenamer.getInstance().parseStructContext(context);
+      }
       System.out.printf("----- rename [start]\n");
       buildInheritanceTree();
       System.out.printf("----- rename [all classes]\n");

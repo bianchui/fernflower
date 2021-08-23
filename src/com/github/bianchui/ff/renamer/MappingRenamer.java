@@ -3,21 +3,36 @@ package com.github.bianchui.ff.renamer;
 
 import com.github.bianchui.ff.pgmapping.MappingReader;
 import com.github.bianchui.ff.utils.ClassUtil;
+import com.github.bianchui.ff.utils.MyLogger;
 import com.github.bianchui.ff.utils.RenamerUtil;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
+import org.jetbrains.java.decompiler.struct.StructClass;
+import org.jetbrains.java.decompiler.struct.StructContext;
+import org.jetbrains.java.decompiler.struct.attr.StructGeneralAttribute;
+import org.jetbrains.java.decompiler.struct.attr.StructInnerClassesAttribute;
+import org.jetbrains.java.decompiler.struct.attr.StructSourceFileAttribute;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MappingRenamer implements IIdentifierRenamer {
+  private static MappingRenamer gInstance;
   private final ShortRenamer _shortRenamer;
   private final MappingReader _mappingReader;
   private boolean _redirectPackage = false;
+  private final Map<String, String> _sourceFiles = new HashMap<>();
+
+  public static MappingRenamer getInstance() {
+    return gInstance;
+  }
 
   public MappingRenamer() {
+    gInstance = this;
     _shortRenamer = new ShortRenamer();
     File file = new File("mapping.txt");
     if (file.canRead()) {
@@ -25,6 +40,65 @@ public class MappingRenamer implements IIdentifierRenamer {
       //_mappingReader.dump();
     } else {
       _mappingReader = null;
+    }
+  }
+
+  public void parseStructContext(StructContext context) {
+    Map<String, StructClass> classes = context.getClasses();
+    Set<String> innerClasses = new HashSet<>();
+    Map<String, String> mapGuessNameToMapName = new HashMap<>();
+    Set<String> multiGuessName = new HashSet<>();
+    for (StructClass cl : classes.values()) {
+      if (!cl.isOwn()) {
+        continue;
+      }
+      final StructInnerClassesAttribute inner = cl.getAttribute(StructGeneralAttribute.ATTRIBUTE_INNER_CLASSES);
+      if (inner != null) {
+        for (StructInnerClassesAttribute.Entry entry : inner.getEntries()) {
+          innerClasses.add(entry.innerName);
+        }
+      }
+    }
+    for (StructClass cl : classes.values()) {
+      if (!cl.isOwn()) {
+        continue;
+      }
+      if (innerClasses.contains(cl.qualifiedName)) {
+        continue;
+      }
+
+      final StructSourceFileAttribute sourceFile = cl.getAttribute(StructGeneralAttribute.ATTRIBUTE_SOURCE_FILE);
+      if (sourceFile != null) {
+        final String fileName = sourceFile.getSourceFile();
+        if (fileName != null) {
+          if (fileName.endsWith(".java")) {
+            final String guessClassName = fileName.substring(0, fileName.length() - 5).trim();
+
+            final String mapPkg = RenamerUtil.getClassPackage(cl.qualifiedName);
+            String orgPkg = mapPkg;
+            if (_mappingReader != null) {
+              String pkg = _mappingReader.getOrgPackage(mapPkg);
+              if (pkg != null) {
+                orgPkg = pkg;
+              }
+            }
+            final String guessQualifiedName = orgPkg + "/" + guessClassName;
+            if (!multiGuessName.contains(guessQualifiedName)) {
+              if (mapGuessNameToMapName.containsKey(guessQualifiedName)) {
+                multiGuessName.add(guessQualifiedName);
+                mapGuessNameToMapName.remove(guessQualifiedName);
+              } else {
+                mapGuessNameToMapName.put(guessQualifiedName, cl.qualifiedName);
+              }
+            }
+          }
+        }
+      }
+
+      // then add all guessed name to map
+      for (Map.Entry<String, String> entry : mapGuessNameToMapName.entrySet()) {
+        MyLogger.guess_name_log("guess %s -> %s\n", entry.getValue(), entry.getKey());
+      }
     }
   }
 

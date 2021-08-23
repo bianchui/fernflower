@@ -10,6 +10,7 @@ public class MyLogger {
   private static final boolean DEBUG = false;
 
   public static final boolean CAT_RENAME = false;
+  public static final boolean CAT_GUESS_NAME = false;
   public static final boolean CAT_PROCESS = false;
   public static final boolean CAT_GENERIC = false;
   public static final boolean DumpClassTree = false;
@@ -28,10 +29,11 @@ public class MyLogger {
     System.out.printf(format, args);
   }
 
+  public static void guess_name_log(String format, Object ... args) {
+    log(CAT_GUESS_NAME, format, args);
+  }
+
   public static void process_log(String format, Object ... args) {
-    if (!DEBUG) {
-      return;
-    }
     log(CAT_PROCESS, format, args);
   }
 
