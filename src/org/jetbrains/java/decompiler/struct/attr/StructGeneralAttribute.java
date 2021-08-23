@@ -17,6 +17,7 @@ public class StructGeneralAttribute {
   public static final Key<StructCodeAttribute> ATTRIBUTE_CODE = new Key<>("Code");
   public static final Key<StructInnerClassesAttribute> ATTRIBUTE_INNER_CLASSES = new Key<>("InnerClasses");
   public static final Key<StructGenericSignatureAttribute> ATTRIBUTE_SIGNATURE = new Key<>("Signature");
+  public static final Key<StructSourceFileAttribute> ATTRIBUTE_SOURCE_FILE = new Key<>("SourceFile");
   public static final Key<StructAnnDefaultAttribute> ATTRIBUTE_ANNOTATION_DEFAULT = new Key<>("AnnotationDefault");
   public static final Key<StructExceptionsAttribute> ATTRIBUTE_EXCEPTIONS = new Key<>("Exceptions");
   public static final Key<StructEnclosingMethodAttribute> ATTRIBUTE_ENCLOSING_METHOD = new Key<>("EnclosingMethod");
@@ -100,6 +101,9 @@ public class StructGeneralAttribute {
     }
     else if (ATTRIBUTE_RECORD.name.equals(name)) {
       return new StructRecordAttribute();
+    }
+    else if (ATTRIBUTE_SOURCE_FILE.name.equals(name)) {
+      return new StructSourceFileAttribute();
     }
     else {
       return null; // unsupported attribute
