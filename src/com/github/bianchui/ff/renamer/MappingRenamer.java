@@ -39,15 +39,15 @@ public class MappingRenamer implements IIdentifierRenamer {
       _mappingReader = new MappingReader(file);
       //_mappingReader.dump();
     } else {
-      _mappingReader = null;
+      _mappingReader = new MappingReader();
     }
   }
 
   public void parseStructContext(StructContext context) {
     Map<String, StructClass> classes = context.getClasses();
-    Set<String> innerClasses = new HashSet<>();
-    Map<String, String> mapGuessNameToMapName = new HashMap<>();
-    Set<String> multiGuessName = new HashSet<>();
+    final Set<String> innerClasses = new HashSet<>();
+    final Map<String, String> mapGuessNameToMapName = new HashMap<>();
+    final Set<String> multiGuessName = new HashSet<>();
     for (StructClass cl : classes.values()) {
       if (!cl.isOwn()) {
         continue;
@@ -94,11 +94,14 @@ public class MappingRenamer implements IIdentifierRenamer {
           }
         }
       }
+    }
 
-      // then add all guessed name to map
-      for (Map.Entry<String, String> entry : mapGuessNameToMapName.entrySet()) {
-        MyLogger.guess_name_log("guess %s -> %s\n", entry.getValue(), entry.getKey());
-      }
+    // then add all guessed name to map
+    for (Map.Entry<String, String> entry : mapGuessNameToMapName.entrySet()) {
+      MyLogger.guess_name_log("guess %s -> %s\n", entry.getValue(), entry.getKey());
+    }
+    if (_mappingReader != null) {
+      _mappingReader.applyClassNameMap(mapGuessNameToMapName);
     }
   }
 

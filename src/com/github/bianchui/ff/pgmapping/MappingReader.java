@@ -2,6 +2,7 @@
 package com.github.bianchui.ff.pgmapping;
 
 import com.github.bianchui.ff.utils.JavaTypes;
+import com.github.bianchui.ff.utils.MyLogger;
 import com.github.bianchui.ff.utils.StringUtil;
 
 import java.io.BufferedReader;
@@ -67,6 +68,9 @@ public class MappingReader {
   public MappingReader(File file) {
     readFile(file);
     processMapping();
+  }
+
+  public MappingReader() {
   }
 
   private void mapPackageForClass(String orgClsName, String mapClsName) {
@@ -211,6 +215,61 @@ public class MappingReader {
         }
       }
     }
+  }
+
+  public void applyClassNameMap(Map<String, String> orgToMapNameMap) {
+    if (orgToMapNameMap.isEmpty()) {
+      return;
+    }
+    // assume map name has $ also
+    Map<String, List<ClassInfo>> outerToInnerClassMap = new HashMap<>();
+    for (ClassInfo classInfo : _classes) {
+      int index = classInfo._mapName.indexOf('$');
+      if (index == -1) {
+        continue;
+      }
+      final String outerClass = classInfo._mapName.substring(0, index);
+      List<ClassInfo> innerClasses = outerToInnerClassMap.get(outerClass);
+      if (innerClasses == null) {
+        innerClasses = new ArrayList<>();
+        outerToInnerClassMap.put(outerClass, innerClasses);
+      }
+      innerClasses.add(classInfo);
+    }
+    // update class orgName
+    for (Map.Entry<String, String> entry : orgToMapNameMap.entrySet()) {
+      ClassInfo classInfo = _mapNameClasses.get(entry.getValue());
+      if (classInfo != null) {
+        // rename all inner class
+        final List<ClassInfo> innerClasses = outerToInnerClassMap.get(entry.getValue());
+        if (innerClasses != null) {
+          for (ClassInfo innerClass : innerClasses) {
+            int i = innerClass._orgName.indexOf('$');
+            String innerName = innerClass._orgName.substring(i + 1);
+            if (i == -1) {
+              i = innerClass._mapName.indexOf('$');
+              innerName = innerClass._mapName.substring(i + 1);
+              if (i == -1) {
+                continue;
+              }
+            }
+            innerClass._orgName = entry.getKey() + '$' + innerName;
+          }
+        }
+      } else {
+        classInfo = new ClassInfo();
+        classInfo._mapName = entry.getValue();
+        _mapNameClasses.put(entry.getValue(), classInfo);
+      }
+      classInfo._orgName = entry.getKey();
+    }
+    // rebuild orgNameClasses
+    _orgNameClasses.clear();
+    for (ClassInfo classInfo : _classes) {
+      _orgNameClasses.put(classInfo._orgName, classInfo);
+    }
+    // rebuild members
+    processMapping();
   }
 
   private void processMapping() {
