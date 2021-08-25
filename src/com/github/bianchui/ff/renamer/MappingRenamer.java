@@ -43,7 +43,17 @@ public class MappingRenamer implements IIdentifierRenamer {
     }
   }
 
+  private static int getGuessLimit() {
+    Object prop = DecompilerContext.getProperty("gus");
+    return (prop != null) ? Integer.parseInt((String)prop) : -1;
+  }
+
   public void parseStructContext(StructContext context) {
+    int limitCount = getGuessLimit();
+    if (limitCount == 0) {
+      return;
+    }
+
     Map<String, StructClass> classes = context.getClasses();
     final Set<String> innerClasses = new HashSet<>();
     final Map<String, String> mapGuessNameToMapName = new HashMap<>();
@@ -89,6 +99,9 @@ public class MappingRenamer implements IIdentifierRenamer {
                 mapGuessNameToMapName.remove(guessQualifiedName);
               } else {
                 mapGuessNameToMapName.put(guessQualifiedName, cl.qualifiedName);
+                if (limitCount > 0 && mapGuessNameToMapName.size() == limitCount) {
+                  break;
+                }
               }
             }
           }
