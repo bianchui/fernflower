@@ -48,6 +48,10 @@ public class MappingRenamer implements IIdentifierRenamer {
     return (prop != null) ? Integer.parseInt((String)prop) : -1;
   }
 
+  private static String validateFileName(String s) {
+    return s.replace('$', '_');
+  }
+
   public void parseStructContext(StructContext context) {
     int limitCount = getGuessLimit();
     if (limitCount == 0) {
@@ -82,7 +86,7 @@ public class MappingRenamer implements IIdentifierRenamer {
         final String fileName = sourceFile.getSourceFile();
         if (fileName != null) {
           if (fileName.endsWith(".java")) {
-            final String guessClassName = fileName.substring(0, fileName.length() - 5).trim();
+            final String guessClassName = validateFileName(fileName.substring(0, fileName.length() - 5).trim());
 
             final String mapPkg = RenamerUtil.getClassPackage(cl.qualifiedName);
             String orgPkg = mapPkg;
