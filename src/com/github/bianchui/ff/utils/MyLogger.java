@@ -29,8 +29,17 @@ public class MyLogger {
     System.out.printf(format, args);
   }
 
+  public static void error(boolean log, String format, Object ... args) {
+    System.err.print("!!ERROR!!: ");
+    System.err.printf(format, args);
+    System.err.flush();
+  }
+
   public static void guess_name_log(String format, Object ... args) {
     log(CAT_GUESS_NAME, format, args);
+  }
+  public static void guess_name_error(String format, Object ... args) {
+    error(CAT_GUESS_NAME, format, args);
   }
 
   public static void process_log(String format, Object ... args) {

@@ -240,6 +240,11 @@ public class MappingReader {
     for (Map.Entry<String, String> entry : orgToMapNameMap.entrySet()) {
       ClassInfo classInfo = _mapNameClasses.get(entry.getValue());
       if (classInfo != null) {
+        // tests for same name
+        if (classInfo._orgName.equals(entry.getKey())) {
+          continue;
+        }
+        MyLogger.guess_name_error("Conflict guess \"%s\" vs map \"%s\"\n", entry.getKey(), classInfo._orgName);
         // rename all inner class
         final List<ClassInfo> innerClasses = outerToInnerClassMap.get(entry.getValue());
         if (innerClasses != null) {
