@@ -39,9 +39,9 @@ public class MappingGen {
       throw new RuntimeException("Class " + mapFullName + " exist.");
     }
     final String mapPkg = RenamerUtil.getClassPackage(mapFullName);
-    final String orgPkg = _mapPackages.get(mapPkg);
+    final String orgPkg = mapPkg.isEmpty() ? mapPkg : _mapPackages.get(mapPkg);
     if (orgPkg == null) {
-      throw new RuntimeException("Package " + mapPkg + " not found.");
+      throw new RuntimeException("Package " + mapPkg + " not found, for " + orgShortName + ", " + mapFullName + ".");
     }
     classInfo = new ClassInfo();
     classInfo._orgName = orgPkg + "/" + orgShortName;
