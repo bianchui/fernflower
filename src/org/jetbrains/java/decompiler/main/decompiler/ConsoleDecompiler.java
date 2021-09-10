@@ -181,9 +181,20 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
     }
   }
 
+  private static final String kArchiveSuffix = ".ffsrc";
+
+  private String fixArchiveName(String archiveName) {
+    int lastPt = archiveName.lastIndexOf('.');
+    if (lastPt == -1) {
+      return archiveName + kArchiveSuffix;
+    } else {
+      return archiveName.substring(0, lastPt) + kArchiveSuffix + archiveName.substring(lastPt);
+    }
+  }
+
   @Override
   public void createArchive(String path, String archiveName, Manifest manifest) {
-    File file = new File(getAbsolutePath(path), archiveName);
+    File file = new File(getAbsolutePath(path), fixArchiveName(archiveName));
     try {
       if (!(file.createNewFile() || file.isFile())) {
         throw new IOException("Cannot create file " + file);
@@ -213,7 +224,7 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
 
   @Override
   public void copyEntry(String source, String path, String archiveName, String entryName) {
-    String file = new File(getAbsolutePath(path), archiveName).getPath();
+    String file = new File(getAbsolutePath(path), fixArchiveName(archiveName)).getPath();
 
     if (!checkEntry(entryName, file)) {
       return;
@@ -237,7 +248,7 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
 
   @Override
   public void saveClassEntry(String path, String archiveName, String qualifiedName, String entryName, String content) {
-    String file = new File(getAbsolutePath(path), archiveName).getPath();
+    String file = new File(getAbsolutePath(path), fixArchiveName(archiveName)).getPath();
 
     // [BC] not save directory
     if (entryName.endsWith("/")) {
@@ -274,7 +285,7 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
 
   @Override
   public void closeArchive(String path, String archiveName) {
-    String file = new File(getAbsolutePath(path), archiveName).getPath();
+    String file = new File(getAbsolutePath(path), fixArchiveName(archiveName)).getPath();
     try {
       mapArchiveEntries.remove(file);
       mapArchiveStreams.remove(file).close();
