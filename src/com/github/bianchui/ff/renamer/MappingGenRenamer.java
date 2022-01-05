@@ -30,10 +30,12 @@ public class MappingGenRenamer implements IIdentifierRenamer {
     boolean rename = _renamer.toBeRenamed(elementType, className, element, descriptor);
     final boolean renameAllPass = RenamerUtil.isRenameAllPass(className, element);
     // record name not change
-    if (!rename && renameAllPass) {
+    if (!rename) {
       switch (elementType) {
         case ELEMENT_CLASS:
-          _mappingGen.addMapClass(className, element);
+          if (renameAllPass) {
+            _mappingGen.addMapClass(className, element);
+          }
           break;
         case ELEMENT_FIELD:
           _mappingGen.addMapField(className, element, element, descriptor);

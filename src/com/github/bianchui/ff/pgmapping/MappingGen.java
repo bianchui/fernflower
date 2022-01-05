@@ -65,6 +65,9 @@ public class MappingGen {
   }
 
   public void addMapMethod(String mapFullClassName, String orgName, String mapName, String mapDescriptor) {
+    if (orgName.startsWith("<")) {
+      return;
+    }
     ClassInfo classInfo = _mapNameClasses.get(mapFullClassName);
     if (classInfo == null) {
       throw new RuntimeException("Class " + mapFullClassName + " not found.");

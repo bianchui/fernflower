@@ -25,14 +25,14 @@ public class DebugRenamer implements IIdentifierRenamer {
    *    Type.ELEMENT_CLASS:
    *      renameClass pass:
    *        className: shortName
-   *        element: canonicalName without package change
+   *        element: full name without package change
    *        descriptor: null
    *      innerClass pass:
    *        className: shortInnerName
-   *        element: canonicalName with package change
+   *        element: full name with package change
    *        descriptor: null
    *    Type.ELEMENT_FIELD:
-   *      className: canonicalName
+   *      className: full name
    *    Type.ELEMENT_METHOD:
    *
    * @param className
