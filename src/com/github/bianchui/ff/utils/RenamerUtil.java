@@ -126,9 +126,15 @@ public class RenamerUtil {
       case 'L':
         String name = getRenamedClassName(typeDescriptor.substring(i + 1, typeDescriptor.indexOf(';', i + 1)));
         int nameStart = name.lastIndexOf('/') + 1;
+        final int nameInner = name.lastIndexOf('$') + 1;
+        if (nameInner > nameStart && nameInner != name.length() - 1) {
+          nameStart = nameInner;
+        }
         String nameShort = name.substring(nameStart);
         if (nameShort.startsWith("Class_") && nameShort.length() != 6) {
           nameShort = nameShort.substring(6);
+        } else if (nameShort.startsWith("Inner_") && nameShort.length() != 6) {
+          nameShort = "$" + nameShort.substring(6);
         }
         sb.append(nameShort.substring(0, 1).toUpperCase(Locale.US));
         sb.append(nameShort.substring(1));
