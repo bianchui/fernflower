@@ -6,11 +6,46 @@ import com.github.bianchui.ff.utils.RenamerUtil;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ShortRenamer implements IIdentifierRenamer {
   private final ConverterHelper _helper = new ConverterHelper();
+  private final Pattern kPattern_Oo0 = Pattern.compile("[Oo0]+");
+
+  public boolean isAll_Oo0(String name) {
+    if (name.length() <= 2) {
+      return false;
+    }
+    Matcher matcher = kPattern_Oo0.matcher(name);
+    return matcher.matches();
+  }
+
+  public int nameOo0ToInt(String name) {
+    int num = 0;
+    for (int i = 0; i < name.length(); ++i) {
+      int a = 0;
+      switch (name.charAt(i)) {
+        case 'O':
+          a = 1;
+          break;
+        case 'o':
+          a = 2;
+          break;
+        case '0':
+          a = 3;
+          break;
+      }
+      num = num << 2 | a;
+    }
+    return num;
+  }
 
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
+    if (isAll_Oo0(oldSubName)) {
+      oldSubName = "op_" + nameOo0ToInt(oldSubName);
+    }
     return oldSubName;
   }
 
@@ -20,7 +55,7 @@ public class ShortRenamer implements IIdentifierRenamer {
     while (true) {
       final int nameEnd = shortName.indexOf('$', nameStart);
       final String subName = shortName.substring(nameStart, nameEnd == -1 ? shortName.length() : nameEnd);
-      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
+      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null) || isAll_Oo0(subName)) {
         return true;
       }
       if (nameEnd == -1) {
@@ -45,7 +80,7 @@ public class ShortRenamer implements IIdentifierRenamer {
       }
 
     }
-    return _helper.toBeRenamed(elementType, className, element, descriptor);
+    return _helper.toBeRenamed(elementType, className, element, descriptor) || isAll_Oo0(element);
   }
 
   public void renameInnerClass(String shortName, int nameStart, int innerLevel, StringBuilder sb) {
@@ -55,7 +90,7 @@ public class ShortRenamer implements IIdentifierRenamer {
       if (innerLevel > 0) {
         sb.append('$');
       }
-      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null)) {
+      if (_helper.toBeRenamed(Type.ELEMENT_CLASS, subName, null, null) || isAll_Oo0(subName)) {
         if (innerLevel > 0) {
           for (int i = 0; i < innerLevel; ++i) {
             sb.append("Inner_");
@@ -64,7 +99,12 @@ public class ShortRenamer implements IIdentifierRenamer {
           sb.append("Class_");
         }
       }
-      sb.append(subName);
+      if (isAll_Oo0(subName)) {
+        sb.append("OC_");
+        sb.append(nameOo0ToInt(subName));
+      } else {
+        sb.append(subName);
+      }
       ++innerLevel;
       if (nameEnd == -1) {
         break;
@@ -100,11 +140,17 @@ public class ShortRenamer implements IIdentifierRenamer {
 
   @Override
   public String getNextFieldName(String className, String field, String descriptor) {
+    if (isAll_Oo0(field)) {
+      field = "of_" + nameOo0ToInt(field);
+    }
     return "_" + RenamerUtil.typeDescriptorShortName(descriptor, 0) + "_" + field;
   }
 
   @Override
   public String getNextMethodName(String className, String method, String descriptor) {
+    if (isAll_Oo0(method)) {
+      method = "om_" + nameOo0ToInt(method);
+    }
     if (descriptor.equals("()V")) {
       return "method_" + method;
     }
