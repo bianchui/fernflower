@@ -21,7 +21,7 @@ public class ShortRenamer implements IIdentifierRenamer {
     return matcher.matches();
   }
 
-  public int nameOo0ToInt(String name) {
+  public String nameOo0ToName(String name) {
     int num = 0;
     for (int i = 0; i < name.length(); ++i) {
       int a = 0;
@@ -38,13 +38,13 @@ public class ShortRenamer implements IIdentifierRenamer {
       }
       num = num << 2 | a;
     }
-    return num;
+    return Integer.toHexString(num);
   }
 
   @Override
   public String renamePackage(String oldParentPackage, String newParentPackage, String oldSubName) {
     if (isAll_Oo0(oldSubName)) {
-      oldSubName = "op_" + nameOo0ToInt(oldSubName);
+      oldSubName = "op_" + nameOo0ToName(oldSubName);
     }
     return oldSubName;
   }
@@ -101,7 +101,7 @@ public class ShortRenamer implements IIdentifierRenamer {
       }
       if (isAll_Oo0(subName)) {
         sb.append("OC_");
-        sb.append(nameOo0ToInt(subName));
+        sb.append(nameOo0ToName(subName));
       } else {
         sb.append(subName);
       }
@@ -141,7 +141,7 @@ public class ShortRenamer implements IIdentifierRenamer {
   @Override
   public String getNextFieldName(String className, String field, String descriptor) {
     if (isAll_Oo0(field)) {
-      field = "of_" + nameOo0ToInt(field);
+      field = "of_" + nameOo0ToName(field);
     }
     return "_" + RenamerUtil.typeDescriptorShortName(descriptor, 0) + "_" + field;
   }
@@ -149,7 +149,7 @@ public class ShortRenamer implements IIdentifierRenamer {
   @Override
   public String getNextMethodName(String className, String method, String descriptor) {
     if (isAll_Oo0(method)) {
-      method = "om_" + nameOo0ToInt(method);
+      method = "om_" + nameOo0ToName(method);
     }
     if (descriptor.equals("()V")) {
       return "method_" + method;
